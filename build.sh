@@ -94,4 +94,8 @@ hdiutil convert -quiet "$RW" -format UDZO -imagekey zlib-level=9 -o "$DMG"
 rm -rf "$RW" "$STAGE"
 codesign --force -s - "$DMG"
 
+# Fingerprints: send these to friends separately (e.g. by text) so they can check the download is really yours.
+( cd build && shasum -a 256 "$NAME.dmg" "$NAME.zip" > SHA256.txt )
+
 echo "✓ Done: $APP, build/$NAME.zip and $DMG"
+echo "  Fingerprints (build/SHA256.txt):"; sed 's/^/    /' build/SHA256.txt
