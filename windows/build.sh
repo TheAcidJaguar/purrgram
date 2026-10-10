@@ -28,6 +28,7 @@ for s, b in zip(sizes, blobs):
     out += struct.pack("<BBBBHHII", s % 256, s % 256, 0, 0, 1, 32, len(b), off); off += len(b)
 open("Assets/icon.ico", "wb").write(out + b"".join(blobs))
 PY
+cp build/icon_256.png Assets/icon.png   # the tray icon is drawn from this
 
 echo "• Compiling…"
 dotnet build -c Release -nologo -v q -o build/out

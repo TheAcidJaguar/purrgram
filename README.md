@@ -52,7 +52,7 @@ The result should match the fingerprint on the release page exactly.
 
 **Purrgram Lite** is the same cat, drawn from the exact same pixel art, with the basics: walking, sitting, loafing, napping, grooming, stretching, the zoomies, petting, picking up and tossing, the bowls (face in the bowl and all), needs and stats, 12 coats, moods, renaming, and Start with Windows. It stays on the floor (no window jumping yet), and has no yarn, mice, treats, brushing or sounds. It hides itself while a full-screen game, video or presentation is running. If people enjoy it, the rest is coming.
 
-## Controls
+## Controls (Mac)
 
 - **Click** the cat to pet it (they purr, but don't overdo it)
 - **Double-click** to shoo it out of the way

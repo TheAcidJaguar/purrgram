@@ -85,7 +85,14 @@ namespace Purrgram
             return new SaveState();
         }
 
+        static readonly object saveLock = new object();
+
         public void Save()
+        {
+            lock (saveLock) SaveNow();
+        }
+
+        void SaveNow()
         {
             try
             {

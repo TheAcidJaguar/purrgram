@@ -21,6 +21,8 @@ namespace Purrgram
         readonly Stopwatch clock = Stopwatch.StartNew();
         double lastT, saveT, watchT, topT, fullT;
         bool paused, hiddenByUser, hiddenForFullScreen;
+        volatile bool remeasure, wantPause;
+        int errors;
 
         // Screen geometry in device pixels; `scale` = device pixels per art pixel, `U` = device pixels per point.
         Rectangle work;
@@ -62,17 +64,24 @@ namespace Purrgram
                     typeof(NotifyIcon).GetMethod("ShowContextMenu", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.Invoke(tray, null);
             };
             tray.Visible = true;
+            if (!state.Named)   // first launch: the tray icon often hides under the ^ arrow, so point it out
+            {
+                tray.ShowBalloonTip(8000, "Purrgram is running",
+                    "Your cat lives on the taskbar. Its menu (stats, bowls, coat, name, Quit) is this cat icon in the tray.", ToolTipIcon.None);
+                state.Named = true; state.Save();
+            }
 
-            SystemEvents.DisplaySettingsChanged += (s, e) => { Measure(); cat.Reclamp(); lastCatKey = lastBowlKey = ""; };
+            // These can arrive on a background thread, so they only leave a note for the frame loop.
+            SystemEvents.DisplaySettingsChanged += (s, e) => remeasure = true;
             SystemEvents.SessionSwitch += (s, e) =>
             {
-                if (e.Reason == SessionSwitchReason.SessionLock || e.Reason == SessionSwitchReason.ConsoleDisconnect) Pause(true);
-                if (e.Reason == SessionSwitchReason.SessionUnlock || e.Reason == SessionSwitchReason.ConsoleConnect) Pause(false);
+                if (e.Reason == SessionSwitchReason.SessionLock || e.Reason == SessionSwitchReason.ConsoleDisconnect) wantPause = true;
+                if (e.Reason == SessionSwitchReason.SessionUnlock || e.Reason == SessionSwitchReason.ConsoleConnect) wantPause = false;
             };
             SystemEvents.PowerModeChanged += (s, e) =>
             {
-                if (e.Mode == PowerModes.Suspend) Pause(true);
-                if (e.Mode == PowerModes.Resume) Pause(false);
+                if (e.Mode == PowerModes.Suspend) wantPause = true;
+                if (e.Mode == PowerModes.Resume) wantPause = false;
             };
             SystemEvents.SessionEnding += (s, e) => state.Save();
             Application.ApplicationExit += (s, e) => Shutdown();
@@ -122,6 +131,20 @@ namespace Purrgram
 
         void Frame()
         {
+            try { Step(); }
+            catch (Exception ex)
+            {   // log it and carry on; a stuck cat gets rescued rather than taking the app down
+                Program.Log(ex);
+                if (++errors > 50) { timer.Stop(); Program.Log(new Exception("too many errors; stopping")); return; }
+                cat.Interrupt(Act.Of(A.Sit, 1));
+                lastCatKey = lastBowlKey = "";
+            }
+        }
+
+        void Step()
+        {
+            if (wantPause != paused) Pause(wantPause);
+            if (remeasure) { remeasure = false; Measure(); cat.Reclamp(); lastCatKey = lastBowlKey = ""; }
             double now = clock.Elapsed.TotalSeconds, dt = Math.Min(0.1, Math.Max(0, now - lastT));
             lastT = now;
             if (paused) return;

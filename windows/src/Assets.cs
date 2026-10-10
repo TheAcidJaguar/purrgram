@@ -85,9 +85,26 @@ namespace Purrgram
             g.DrawImage(img, new Rectangle(x, y, src.Width * scale, src.Height * scale), src, GraphicsUnit.Pixel);
         }
 
+        /// The app icon at `size` pixels, drawn from the embedded 256px PNG (the .NET Framework Icon class can't always
+        /// read PNG-compressed .ico entries, so this doesn't rely on it).
         public static Icon AppIcon(int size)
         {
-            using (var s = Resource("icon.ico")) return s == null ? SystemIcons.Application : new Icon(s, size, size);
+            try
+            {
+                var src = Image("icon.png");
+                if (src == null) return SystemIcons.Application;
+                using (var b = new Bitmap(size, size, PixelFormat.Format32bppArgb))
+                {
+                    using (var g = Graphics.FromImage(b))
+                    {
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        g.DrawImage(src, new Rectangle(0, 0, size, size));
+                    }
+                    return Icon.FromHandle(b.GetHicon());
+                }
+            }
+            catch { return SystemIcons.Application; }
         }
     }
 }
