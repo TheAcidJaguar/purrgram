@@ -22,6 +22,7 @@ if let i = args.firstIndex(of: "--gif"), i + 2 < args.count {
     renderGIF(args[i + 1], args[i + 2], coat: i + 3 < args.count ? Int(args[i + 3]) ?? 0 : 0); exit(0)
 }
 if let i = args.firstIndex(of: "--icon"), i + 1 < args.count { renderIcon(args[i + 1]); exit(0) }
+if let i = args.firstIndex(of: "--hero"), i + 1 < args.count { renderHero(args[i + 1]); exit(0) }
 
 let app = NSApplication.shared
 let delegate = AppDelegate()

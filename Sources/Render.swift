@@ -211,3 +211,84 @@ func croppedToContent(_ img: CGImage) -> CGImage? {
     guard x1 >= x0 else { return nil }
     return img.cropping(to: CGRect(x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1))   // memory rows run top-down, like cropping
 }
+
+/// The README's hero image: a little desktop scene drawn with the real sprites (`--hero out.png`).
+func renderHero(_ path: String) {
+    let W: CGFloat = 760, H: CGFloat = 232, floorY: CGFloat = 30
+    let win = CGRect(x: 40, y: floorY, width: 236, height: 138)
+    let world = World()
+    world.screen = CGRect(x: 0, y: 0, width: W, height: H); world.vis = world.screen
+    world.all = [Plat(id: 1, rect: win, order: 0)]; world.stand = world.all
+
+    /// A cat in a given coat and moment, drawn with its feet at (x, y).
+    func drawCat(_ ctx: CGContext, coat: String, act: Act, t: Double, x: CGFloat, y: CGFloat, facing: CGFloat,
+                 onWindow: Bool = false, collar: Int? = 0xC8323C) {
+        var st = SaveState(); st.coat = coats.firstIndex { $0.name == coat } ?? 0
+        let cat = Cat(world: world, state: st, sound: SoundBox())
+        cat.act = act; cat.actT = t; cat.time = t; cat.phase = 1.1; cat.facing = facing
+        if onWindow { cat.surface = .window(1); cat.surfRect = win }
+        let c = coats[st.coat]
+        guard let img = Painter.image(cat.makePose(), coat: c, facing: facing, size: CGSize(width: VW, height: VH), origin: P(OX, OY),
+                                      collar: collar.map { rgb($0) }) else { return }
+        ctx.draw(img, in: CGRect(x: (x - OX).rounded(), y: (y - OY).rounded(), width: VW, height: VH))
+    }
+    /// Draw something into its own transparent layer first (the bowl view clears its bounds as it draws).
+    func layer(_ size: CGSize, _ body: (CGContext) -> Void) -> CGImage? {
+        guard let c = CGContext(data: nil, width: Int(size.width * 3), height: Int(size.height * 3), bitsPerComponent: 8, bytesPerRow: 0,
+                                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return nil }
+        c.interpolationQuality = .none; c.scaleBy(x: 3, y: 3)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: c, flipped: false)
+        body(c)
+        NSGraphicsContext.restoreGraphicsState()
+        return c.makeImage()
+    }
+
+    renderPNG(size: CGSize(width: W, height: H), scale: 3, to: path) { ctx in
+        // Warm backdrop that matches the app icon, and a soft "floor" along the bottom of the screen.
+        let grad = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
+                              colors: [rgb(0xFFF5EF).cgColor, rgb(0xFBDDD0).cgColor] as CFArray, locations: [0, 1])!
+        ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: H), end: CGPoint(x: 0, y: 0), options: [])
+        ctx.setFillColor(rgb(0xF2C7B6).cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: floorY))
+        ctx.setFillColor(rgb(0xE8B3A0).cgColor); ctx.fill(CGRect(x: 0, y: floorY - PX, width: W, height: PX))
+
+        // An app window for the cat to sit on: body, title bar, traffic lights and a few lines of "content".
+        ctx.saveGState()
+        ctx.setShadow(offset: CGSize(width: 0, height: -4), blur: 14, color: NSColor.black.withAlphaComponent(0.18).cgColor)
+        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.setFillColor(.white); ctx.fillPath()
+        ctx.restoreGState()
+        ctx.saveGState()
+        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.clip()
+        ctx.setFillColor(rgb(0xEDEBF0).cgColor); ctx.fill(CGRect(x: win.minX, y: win.maxY - 26, width: win.width, height: 26))
+        for (i, c) in [0xFF5F57, 0xFEBC2E, 0x28C840].enumerated() {
+            ctx.setFillColor(rgb(c).cgColor); ctx.fillEllipse(in: CGRect(x: win.minX + 12 + CGFloat(i) * 18, y: win.maxY - 18, width: 11, height: 11))
+        }
+        ctx.setFillColor(rgb(0xE9E6EE).cgColor)
+        for (i, w) in [0.62, 0.8, 0.5].enumerated() {
+            ctx.fill(CGRect(x: win.minX + 22, y: win.maxY - 56 - CGFloat(i) * 26, width: (win.width - 44) * CGFloat(w), height: 10))
+        }
+        ctx.restoreGState()
+        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil))
+        ctx.setStrokeColor(rgb(0xD3CED9).cgColor); ctx.setLineWidth(1); ctx.strokePath()
+
+        // The cast.
+        drawCat(ctx, coat: "Siamese", act: .loaf(99), t: 1, x: 190, y: win.maxY, facing: -1, onWindow: true)
+        drawCat(ctx, coat: "Orange Tabby", act: .walk(9e9, 70), t: 0.3, x: 336, y: floorY, facing: 1)
+        drawCat(ctx, coat: "Tuxedo", act: .bat, t: 0.12, x: 452, y: floorY, facing: 1, collar: 0x2F6FD6)
+        if let yarn = pixelContext(ToyView.size) {
+            ToyView.paint(yarn, spin: 1, trail: -1, moving: false, grounded: true)
+            if let im = yarn.makeImage() {
+                ctx.draw(im, in: CGRect(x: 516 - ToyView.size.width / 2, y: floorY - PX, width: ToyView.size.width, height: ToyView.size.height))
+            }
+        }
+        let bowlX: CGFloat = 626
+        let cat = Cat(world: world, state: SaveState(), sound: SoundBox())
+        let bv = BowlView(frame: NSRect(origin: .zero, size: BowlView.size))
+        bv.cat = cat; bv.shownFood = 0.8; bv.shownWater = 0.9
+        if let bowls = layer(BowlView.size, { _ in bv.draw(bv.bounds) }) {
+            ctx.draw(bowls, in: CGRect(x: bowlX, y: floorY - PX, width: BowlView.size.width, height: BowlView.size.height))
+        }
+        drawCat(ctx, coat: "Slate", act: .sit(99), t: 0.2, x: bowlX - 22, y: floorY, facing: 1)   // waiting by the bowls
+    }
+}
