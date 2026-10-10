@@ -65,6 +65,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var awaySince: Date?, vacationAway: TimeInterval = 0, vacationNoteUntil = Date.distantPast
     var settings: SettingsController?
     var mouseMonitor: Any?
+    var termSource: DispatchSourceSignal?
+    var pendingSave: DispatchWorkItem?
     var last = CACurrentMediaTime()
     var saveAcc = 0.0, frontAcc = 0.0
 
@@ -100,7 +102,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setFPS(30)
         observeSystem()
         // Keep click-through hit testing instant even when the cat is drawn at a low frame rate.
-        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in self?.updateHits() }
+        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
+            self?.updateHits()
+            self?.mouseMovedWhilePaused()
+        }
+        // `kill`/`pkill` (SIGTERM) skips applicationWillTerminate — save on the way out anyway.
+        signal(SIGTERM, SIG_IGN)
+        let term = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        term.setEventHandler { [weak self] in if let s = self?.cat?.s { Store.save(s) }; exit(0) }
+        term.resume(); termSource = term
 
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
             self?.screensChanged()
@@ -132,6 +142,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if cmd == "brush" { self?.toggleBrush(); return }
             if cmd == "claw" { let c = cat.planClaw(); cat.interrupt(c.isEmpty ? [.lookUp(1)] : c); return }
             if cmd == "hide" { self?.toggleHidden(); return }
+            if cmd == "vacation" {   // simulate 6 minutes with the display off, through the real pause/resume path
+                self?.pause("display", away: true); self?.awaySince = Date().addingTimeInterval(-6 * 60)
+                self?.resume("display"); return
+            }
             if cmd == "arch" { cat.interrupt([.bigArch, .sit(2)]); return }
             if cmd == "stroke" { cat.brushStroke(at: P(cat.x, cat.y + 30)); return }
             if cmd == "hairball" { cat.interrupt([.hairball(3)]); return }
@@ -140,7 +154,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let c = self?.cat, let w = self?.world else { return }
-            let line = "t=\(String(format: "%.1f", c.time)) act=\(c.act) x=\(Int(c.x)) y=\(Int(c.y)) surf=\(c.surface) floor=\(Int(w.floorY)) stand=\(w.stand.map { "\($0.id)@\(Int($0.top))" }) occl=\(c.occluders().count) belly=\(String(format: "%.2f", c.s.belly)) food=\(String(format: "%.2f", c.s.food)) energy=\(String(format: "%.2f", c.s.energy)) toy=\(c.toy.map { "\(Int($0.x)),\(Int($0.y)) \($0.surface)" } ?? "none") mouse=\(c.critter.map { "\(Int($0.x)) \($0.mode)" } ?? "none")\n"
+            let line = "t=\(String(format: "%.1f", c.time)) act=\(c.act) x=\(Int(c.x)) y=\(Int(c.y)) surf=\(c.surface) floor=\(Int(w.floorY)) stand=\(w.stand.map { "\($0.id)@\(Int($0.top))" }) occl=\(c.occluders().count) belly=\(String(format: "%.2f", c.s.belly)) food=\(String(format: "%.2f", c.s.food)) energy=\(String(format: "%.2f", c.s.energy)) toy=\(c.toy.map { "\(Int($0.x)),\(Int($0.y)) \($0.surface)" } ?? "none") mouse=\(c.critter.map { "\(Int($0.x)) \($0.mode)" } ?? "none") paused=\(self?.pauseReasons.sorted() ?? []) vac=\(Date() < (self?.vacationNoteUntil ?? .distantPast) ? Int(self?.vacationAway ?? 0) : 0)\n"
             if let h = FileHandle(forWritingAtPath: path) { h.seekToEndOfFile(); h.write(line.data(using: .utf8)!); h.closeFile() }
             else { try? line.write(toFile: path, atomically: true, encoding: .utf8) }
         }
@@ -179,6 +193,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if allHidden || paused { return }   // tucked away, or nobody can see the screen
         // Window positions: every frame only while something is riding/jumping/landing, otherwise a few times a second.
         let live = cat.needsLiveWindows || props.contains { $0.surface != .floor || $0.vx != 0 }
+        if let tv = toyView, tv.dragging, NSEvent.pressedMouseButtons & 1 == 0 {   // the mouse-up never arrived
+            tv.dragging = false; toy?.held = false
+        }
         if live || now - lastRefresh > (batterySaver ? 1.0 : 0.4) { world.refresh(); lastRefresh = now }
         if bowlWin.frame != world.bowlRect { bowlWin.setFrame(world.bowlRect, display: true) }
         if cat.poll() { boostUntil = now + 1 }   // you're dragging its window — keep it smooth
@@ -272,7 +289,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         for (off, on, reason) in [("com.apple.screenIsLocked", "com.apple.screenIsUnlocked", "lock"),
                                   ("com.apple.screensaver.didstart", "com.apple.screensaver.didstop", "saver")] {
             dn.addObserver(forName: Notification.Name(off), object: nil, queue: .main) { [weak self] _ in self?.pause(reason, away: false) }
-            dn.addObserver(forName: Notification.Name(on), object: nil, queue: .main) { [weak self] _ in self?.resume(reason) }
+            dn.addObserver(forName: Notification.Name(on), object: nil, queue: .main) { [weak self] _ in
+                if reason == "lock" { self?.pauseReasons.remove("saver") }   // you can't unlock with the screensaver still up
+                self?.resume(reason)
+            }
         }
         NotificationCenter.default.addObserver(forName: .NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in
             self?.updatePower()
@@ -291,7 +311,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard !paused else { return }
         last = CACurrentMediaTime()
         world.refresh(); cat.reclamp()
-        setFPS(30)
+        if !allHidden { setFPS(30) }
         if let a = awaySince {   // back after 5+ minutes with the lid closed: vacation mode kept everything paused
             awaySince = nil
             let away = Date().timeIntervalSince(a)
@@ -299,6 +319,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 vacationAway = away; vacationNoteUntil = Date().addingTimeInterval(20 * 60)
                 cat.welcomeBack()
             }
+        }
+    }
+
+    /// Safety net for a missed "screensaver stopped" / "display woke" notification: if the mouse is moving,
+    /// the display is on and the screensaver is gone, so don't stay paused for those reasons.
+    func mouseMovedWhilePaused() {
+        guard paused, pauseReasons.isSubset(of: ["display", "saver"]) else { return }
+        pauseReasons.remove("saver")
+        resume("display")   // clears the last reason and restarts, including the vacation-mode check
+    }
+
+    /// Coalesce bursts of saves (dragging the color wheel or size slider) into one write.
+    func saveSoon() {
+        pendingSave?.cancel()
+        let w = DispatchWorkItem { [weak self] in if let s = self?.cat?.s { Store.save(s) } }
+        pendingSave = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: w)
+    }
+
+    /// Keep an open Settings window in step with changes made from the menu.
+    func menuDidClose(_ menu: NSMenu) {
+        DispatchQueue.main.async { [weak self] in
+            if let st = self?.settings, st.window.isVisible { st.load() }
         }
     }
 
@@ -521,11 +564,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let wins = [bowlWin, toyWin, treatWin, critterWin, hairballWin, catWin].compactMap { $0 }
         if allHidden {
             wins.forEach { $0.orderOut(nil) }
+            timer?.invalidate(); timer = nil   // nothing to draw: no wake-ups at all while tucked away
             Store.save(cat.s)
         } else {
             wins.forEach { $0.orderFrontRegardless() }
             last = CACurrentMediaTime()
             nextMouseAt = last + rndD(8 * 60, 20 * 60)
+            if !paused { setFPS(30) }
         }
     }
 
@@ -580,7 +625,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard let c = sender.color.usingColorSpace(.sRGB) else { return }
         let hex = (Int((c.redComponent * 255).rounded()) << 16) | (Int((c.greenComponent * 255).rounded()) << 8) | Int((c.blueComponent * 255).rounded())
         cat.s.collarOn = true; cat.s.collarHex = hex
-        Store.save(cat.s)
+        saveSoon()
     }
     @objc func pickCoat(_ sender: NSMenuItem) { cat.s.coat = sender.tag; Store.save(cat.s) }
     @objc func rename() { askName(first: false) }

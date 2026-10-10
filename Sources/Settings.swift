@@ -88,7 +88,7 @@ final class SettingsController: NSObject, NSWindowDelegate {
 
     func load() {
         let s = cat.s
-        nameField.stringValue = s.name
+        if window.firstResponder !== nameField.currentEditor() { nameField.stringValue = s.name }   // don't clobber typing
         coatPop.selectItem(at: s.coat % coats.count)
         moodPop.selectItem(at: cat.trait.rawValue)
         collarCheck.state = s.collarOn ? .on : .off
@@ -109,7 +109,7 @@ final class SettingsController: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
     }
 
-    func save() { Store.save(cat.s) }
+    func save() { app?.saveSoon() }
 
     @objc func nameChanged() {
         let n = nameField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)

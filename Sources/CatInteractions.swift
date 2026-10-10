@@ -159,9 +159,10 @@ extension Cat {
             if t.surface == .floor { let g = goToFloor(); return g + [.goTreat] }
             if case .window(let id) = t.surface, let p = world.stand.first(where: { $0.id == id }) {
                 let j = jumpTo(p)
-                return j.isEmpty ? [.face(dir), .lookUp(2)] : j + [.goTreat]
+                if !j.isEmpty { return j + [.goTreat] }
             }
-            return []
+            treatGiveUpUntil = time + 30   // can't get there from here: gaze up at it, then try again later
+            return [.face(dir), .lookUp(2), .sit(rndD(2, 4))]
         }
         return [.walk(t.x - dir * 28, 210), .face(dir), .eatTreat]
     }

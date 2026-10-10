@@ -45,6 +45,25 @@ func selfTest() -> Int32 {
         }
     }
 
+    // 1b. The biggest cat (largest breed at the 140% size setting) still fits inside its window in every pose.
+    let big = coats.max { $0.size < $1.size }!
+    for a in poseActs {
+        for t in [0.0, 0.7, 1.9] {
+            rc.act = a; rc.actT = t; rc.time = t
+            guard let img = Painter.image(rc.makePose(), coat: big, facing: 1, size: CGSize(width: VW, height: VH), origin: P(OX, OY),
+                                          collar: rgb(0xC8323C), sizeMul: 1.4),
+                  let ctx = CGContext(data: nil, width: img.width, height: img.height, bitsPerComponent: 8, bytesPerRow: img.width * 4,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  let px = { ctx.draw(img, in: CGRect(x: 0, y: 0, width: img.width, height: img.height)); return ctx.data }()?
+                      .bindMemory(to: UInt32.self, capacity: img.width * img.height) else { fails.append("big render failed: \(name(a))"); continue }
+            let w = img.width, h = img.height
+            let edge = (0..<w).contains { px[$0] >> 24 != 0 || px[(h - 1) * w + $0] >> 24 != 0 }
+                || (0..<h).contains { px[$0 * w] >> 24 != 0 || px[$0 * w + w - 1] >> 24 != 0 }
+            if edge { fails.append("clipped at 140%: \(big.name) \(name(a)) t=\(t)"); break }
+            renders += 1
+        }
+    }
+
     // 2. Behaviors, simulated at 30 fps.
     var scenarios = 0
     func run(_ label: String, seconds: Double, setup: (Cat) -> Void) {
@@ -89,7 +108,21 @@ func selfTest() -> Int32 {
     run("big arch", seconds: 15) { $0.queue = [.bigArch] }
     run("loaf for 30 minutes", seconds: 200) { $0.loafHere() }
     run("picked up and dropped", seconds: 10) { c in c.startCarry(); c.carry(to: P(700, 600)); c.drop(velocity: P(300, 100)) }
+    run("bunny kick interrupted", seconds: 20) { c in   // the yarn must be let go, whatever cuts the kick short
+        c.toy = Toy(world: world, kind: .yarn, x: 230, y: 0); c.toy!.surface = .floor
+        c.queue = [.bunnyKick(3)]; c.next()
+        c.startCarry(); c.drop(velocity: .zero)
+        if c.toy?.held == true { fails.append("bunny kick interrupted: yarn still held") }
+    }
+    run("unreachable treat", seconds: 60) { c in   // up on a window the cat can't get to: no endless meowing
+        let t = Toy(world: world, kind: .treat, x: 500, y: 500); t.surface = .window(99); c.treat = t; c.queue = [.goTreat]
+    }
     run("a free-running hour", seconds: 3600) { _ in }
+    var bad = SaveState(); bad.belly = .nan; bad.coat = -3; bad.sizeMul = 50; bad.treatsPerDay = 0
+    let fixed = bad.sanitized()
+    if (try? JSONEncoder().encode(fixed)) == nil || fixed.coat != 0 || fixed.sizeMul != 1.4 || fixed.treatsPerDay != 1 {
+        fails.append("save sanitizing didn't repair a damaged save")
+    }
 
     if fails.isEmpty {
         print("✓ self-test passed: \(renders) renders, \(scenarios) behaviors")

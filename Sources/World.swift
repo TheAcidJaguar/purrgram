@@ -44,7 +44,7 @@ final class World {
         all = list
         stand = list.filter { p in
             let lo = max(p.rect.minX, vis.minX), hi = min(p.rect.maxX, vis.maxX)
-            return hi - lo > 120 && p.top > floorY + 70 && p.top + 62 < vis.maxY
+            return hi - lo > 120 && p.top > floorY + 70 && p.top + 70 <= vis.maxY   // matches the jump ceiling in Cat.physics
         }
     }
 

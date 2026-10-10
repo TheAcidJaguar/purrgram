@@ -39,6 +39,23 @@ struct SaveState: Codable {
 
     init() {}
 
+    /// Pull any impossible values (a hand-edited or damaged file, a NaN) back into range.
+    /// JSONEncoder refuses NaN outright, so one bad number would otherwise stop every future save.
+    func sanitized() -> SaveState {
+        var s = self
+        func unit(_ v: Double, _ def: Double) -> Double { v.isFinite ? clampd(v, 0, 1) : def }
+        s.belly = unit(belly, 0.8); s.hydration = unit(hydration, 0.8); s.energy = unit(energy, 0.9)
+        s.happiness = unit(happiness, 0.8); s.coatCare = unit(coatCare, 0.8)
+        s.food = unit(food, 0.6); s.water = unit(water, 0.6)
+        s.sizeMul = sizeMul.isFinite ? clampd(sizeMul, 0.7, 1.4) : 1
+        s.coat = (0..<coats.count).contains(coat) ? coat : 0
+        if personality >= Personality.allCases.count { s.personality = -1 }   // re-picked at launch
+        s.treatsPerDay = min(max(treatsPerDay, 1), 10); s.treatsUsed = max(0, treatsUsed)
+        s.collarHex = collarHex & 0xFFFFFF
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { s.name = "Mochi" }
+        return s
+    }
+
     /// Decode field by field so older save files (missing newer fields) still load.
     init(from d: Decoder) throws {
         let c = try d.container(keyedBy: CodingKeys.self)
@@ -69,14 +86,14 @@ enum Store {
     /// If the main save is unreadable (e.g. a crash mid-write), fall back to the backup copy.
     static func load() -> SaveState {
         for u in [url, backupURL] {
-            if let data = try? Data(contentsOf: u), let s = try? JSONDecoder().decode(SaveState.self, from: data) { return s }
+            if let data = try? Data(contentsOf: u), let s = try? JSONDecoder().decode(SaveState.self, from: data) { return s.sanitized() }
         }
         return SaveState()
     }
 
     /// Writes atomically, and keeps the previous good save as a backup.
     static func save(_ s: SaveState) {
-        var s = s; s.saved = Date()
+        var s = s.sanitized(); s.saved = Date()
         guard let d = try? JSONEncoder().encode(s) else { return }
         if let old = try? Data(contentsOf: url), (try? JSONDecoder().decode(SaveState.self, from: old)) != nil {
             try? old.write(to: backupURL, options: .atomic)

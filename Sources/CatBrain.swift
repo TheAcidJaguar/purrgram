@@ -8,7 +8,7 @@ extension Cat {
     func decide() {
         var plan: [Act] = []
         let patient = time - lastWait > 60 || chance(0.5)
-        if treat != nil { queue = [.goTreat]; return }
+        if treat != nil && time > treatGiveUpUntil { queue = [.goTreat]; return }
         if critter != nil && chance(0.85) { queue = [.hunt(0)]; return }
         if s.hydration < 0.4 && (s.water > 0.03 || patient) { plan = planBowl(true) }
         else if s.belly < 0.4 && (s.food > 0.03 || patient) { plan = planBowl(false) }

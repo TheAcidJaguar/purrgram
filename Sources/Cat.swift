@@ -45,7 +45,14 @@ final class Cat {
     var vx: CGFloat = 0, vy: CGFloat = 0
     var ignoreID: CGWindowID = 0, ignoreUntil = 0.0
 
-    var act: Act = .sit(2), actT = 0.0, queue: [Act] = []
+    var act: Act = .sit(2) {
+        didSet {   // whatever ended the last action, don't leave its side effects behind
+            if case .bunnyKick = oldValue, !isBunnyKick { toy?.held = false }   // let go of the yarn
+            if case .strain = oldValue { shake = 0 }
+        }
+    }
+    var actT = 0.0, queue: [Act] = []
+    var isBunnyKick: Bool { if case .bunnyKick = act { return true }; return false }
     var time = 0.0, phase: CGFloat = 0
     var nextBlink = 3.0, blinkUntil = 0.0, lastMeowAt = -9.0
     var startleUntil = -9.0, tiltUntil = -9.0
@@ -63,6 +70,7 @@ final class Cat {
     var hairballOut = false
     var onHairball: ((CGPoint, Surface, CGRect) -> Void)?
     var lastScare = -99.0
+    var treatGiveUpUntil = -1.0                                 // a treat it can't reach: stop fixating for a while
     var lastLitter = -15.0 * 60   // first trip no sooner than ~5 minutes after launch
     var trait: Personality { Personality(rawValue: s.personality) ?? .curious }
     var fluffy: Bool { coats[s.coat % coats.count].fluff }
@@ -97,14 +105,16 @@ final class Cat {
         if !x.isFinite || !y.isFinite || !vx.isFinite || !vy.isFinite { x = v.midX; rescue(); return }
         let offOK: Bool = { switch act { case .exitTo, .dig, .strain, .walk, .carried: return true; default: return false } }()
         if !offOK && (x < v.minX - 60 || x > v.maxX + 60) { x = clampf(x, v.minX + 40, v.maxX - 40); rescue(); return }
-        if case .carried = act { return }   // you're holding it
+        if case .carried = act {   // you're holding it — unless the mouse-up got lost (screen locked mid-drag…)
+            if actT > 0.5 && NSEvent.pressedMouseButtons & 1 == 0 { watchdogTrips += 1; drop(velocity: .zero) }
+            return
+        }
         if y < world.floorY - 4 { y = world.floorY; if isAirborne { rescue() }; return }
         let limit: Double
         switch act {
         case .deepSleep: limit = 45 * 60
         case .sleep, .hide: limit = 20 * 60
         case .loaf: limit = 10 * 60
-        case .carried: limit = 10 * 60
         case .leap, .hop, .leapCatch: limit = 8
         default: limit = 3 * 60
         }
