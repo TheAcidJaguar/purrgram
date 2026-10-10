@@ -17,6 +17,7 @@ struct Coat {
     var tailMul: CGFloat = 1         // tail thickness
     var spots = false                // rosettes
     var wrinkles = false             // hairless forehead folds
+    var wedge = false                // wedge-shaped head: high cheekbones, narrow chin, big flared bat ears (Sphynx)
 }
 
 let coats: [Coat] = [
@@ -47,7 +48,7 @@ let coats: [Coat] = [
          earMul: 0.95, bodyMul: 0.95, spots: true),
     Coat(name: "Sphynx", fur: rgb(0xE9C4B2), dark: rgb(0xC69886), light: rgb(0xF4DBCD), outline: rgb(0x4A2E26),
          eye: rgb(0x2A2A10), inner: rgb(0xF0A39C), nose: rgb(0xD98C80),
-         headMul: 0.96, earMul: 1.45, bodyMul: 0.88, tailMul: 0.6, wrinkles: true),
+         headMul: 0.96, earMul: 1.75, bodyMul: 0.88, tailMul: 0.6, wrinkles: true, wedge: true),
 ]
 
 // MARK: - Personality

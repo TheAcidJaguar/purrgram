@@ -372,6 +372,12 @@ struct Painter {
     func ears(_ p: Pose) -> [(CGPoint, CGPoint, CGPoint)] {
         let (hc, r) = headGeom(p)
         let f = p.earFlat
+        if c.wedge {   // big bat ears set low and wide, flaring out to the sides
+            return [-1.0, 1.0].map { (s: CGFloat) in
+                (hc.off(s * r * 1.08, r * 0.1), hc.off(s * r * 0.05 + PX * 0.5, r * 0.8),
+                 hc.off(s * (r * 1.45 + f * r * 0.45) + PX * 0.5, r * (0.3 + 1.0 * c.earMul) - f * r * 0.7))
+            }
+        }
         return [-1.0, 1.0].map { (s: CGFloat) in
             (hc.off(s * r * 0.92, r * 0.3), hc.off(s * r * (c.earMul > 1.2 ? 0.05 : 0.12) + PX * 0.5, r * 0.8),
              hc.off(s * (r * (0.74 + (c.earMul - 1) * 0.25) + f * r * 0.5) + PX * 0.5, r * (0.3 + 1.0 * c.earMul) - f * r * 0.55))
@@ -384,7 +390,24 @@ struct Painter {
             let ear = CGMutablePath(); ear.move(to: a); ear.addLine(to: tip); ear.addLine(to: b); ear.closeSubpath()
             fill(ctx, ear, c.points ? c.dark : c.fur)
         }
-        fill(ctx, ellipse(hc, r * 2.2, r * 1.8), c.fur)
+        fill(ctx, headPath(hc, r), c.fur)
+    }
+
+    /// The head's outline: an oval for most cats; for a wedge head (Sphynx), wide prominent cheekbones
+    /// narrowing to a small chin and muzzle. `inset` shrinks it (used to keep face markings inside the outline).
+    func headPath(_ hc: CGPoint, _ r: CGFloat, inset: CGFloat = 0) -> CGPath {
+        guard c.wedge else { return ellipse(hc, r * 2.2 - inset * 2, r * 1.8 - inset * 2) }
+        let k = (r - inset) / r
+        func q(_ x: CGFloat, _ y: CGFloat) -> CGPoint { hc.off(x * r * k, y * r * k) }
+        let path = CGMutablePath()
+        path.move(to: q(0, 0.86))
+        path.addQuadCurve(to: q(1.12, 0.3), control: q(1.02, 0.86))       // broad, flat-ish skull
+        path.addQuadCurve(to: q(0.28, -0.98), control: q(1.18, -0.3))     // high cheekbone, then the jaw cuts in to a V
+        path.addQuadCurve(to: q(-0.28, -0.98), control: q(0, -1.06))      // small, narrow chin
+        path.addQuadCurve(to: q(-1.12, 0.3), control: q(-1.18, -0.3))
+        path.addQuadCurve(to: q(0, 0.86), control: q(-1.02, 0.86))
+        path.closeSubpath()
+        return path
     }
 
     /// Inner ears, markings and the face — drawn after tidying so single pixels survive.
@@ -403,7 +426,7 @@ struct Painter {
             ctx.fill(CGRect(x: hc.x + CGFloat(col) * PX, y: hc.y + CGFloat(row) * PX, width: CGFloat(w) * PX, height: CGFloat(h) * PX))
         }
         ctx.saveGState()
-        ctx.addPath(ellipse(hc, r * 2.2 - PX, r * 1.8 - PX)); ctx.clip()
+        ctx.addPath(headPath(hc, r, inset: PX / 2)); ctx.clip()
         if c.points {
             let soft = c.fur.blended(withFraction: 0.5, of: c.dark)!
             for (row, lo, hi) in [(1, 0, 1), (0, -1, 2), (-1, -2, 3), (-2, -2, 3), (-3, -2, 3), (-4, -1, 2)] {
@@ -420,18 +443,25 @@ struct Painter {
         if c.stripes { for col in [-1, 1, 3] { px(col, 3, 1, 1, c.dark) } }
         if c.spots { px(-2, 3, 1, 1, c.dark); px(1, 4, 1, 1, c.dark); px(3, 3, 1, 1, c.dark); px(-3, -1, 1, 1, c.dark); px(4, -1, 1, 1, c.dark) }
         if c.wrinkles { px(-1, 3, 4, 1, c.dark); px(0, 4, 2, 1, c.dark) }
+        if c.wedge {   // cheekbones angling down to a narrow muzzle: the wedge reads even where the chin meets the chest
+            for (col, row) in [(-4, -1), (-3, -2), (-2, -3), (5, -1), (4, -2), (3, -3)] { px(col, row, 1, 1, c.dark) }
+        }
         ctx.restoreGState()
 
         let ink = c.eye
         let lid = c.points ? c.dark : ink   // closed / happy eyes are drawn as dark lines
+        // Open eyes are two-tone, green on top and yellow below, like real green-gold cat eyes. Siamese keep their blue.
+        let top = c.points ? ink : rgb(0x4E9A26), low = c.points ? ink : rgb(0xD39A16)
         for (s, cx) in [(-1, -2), (1, 3)] {
             switch p.eyes {
-            case .open: px(cx, 0, 1, 2, ink)
-            case .wide: px(s < 0 ? cx - 1 : cx, 0, 2, 2, ink)
-            case .half: px(cx, 0, 1, 1, ink)
+            case .open where c.wedge:   // big lemon-shaped eyes, slanting up toward the ears
+                px(cx, 1, 1, 1, top); px(cx, 0, 1, 1, low); px(cx + s, 1, 1, 1, top)
+            case .open: px(cx, 1, 1, 1, top); px(cx, 0, 1, 1, low)
+            case .wide: px(s < 0 ? cx - 1 : cx, 1, 2, 1, top); px(s < 0 ? cx - 1 : cx, 0, 2, 1, low)
+            case .half: px(cx, 0, 1, 1, low)
             case .closed: px(s < 0 ? cx - 1 : cx, 0, 2, 1, lid)
             case .happy: px(cx - 1, 0, 1, 1, lid); px(cx, 1, 1, 1, lid); px(cx + 1, 0, 1, 1, lid)
-            case .annoyed: px(s < 0 ? cx - 1 : cx, 1, 2, 1, lid); px(cx, 0, 1, 1, ink)
+            case .annoyed: px(s < 0 ? cx - 1 : cx, 1, 2, 1, lid); px(cx, 0, 1, 1, low)
             case .strain:   // squeezed shut: > <
                 let o = s < 0 ? -1 : 1
                 px(cx - o, 1, 1, 1, lid); px(cx, 0, 1, 1, lid); px(cx - o, -1, 1, 1, lid)
@@ -445,9 +475,10 @@ struct Painter {
         case .none: break
         }
         if let col = collar {   // collar band under the chin with a little gold bell
-            let row = Int(floor(-r * 0.9 / PX))
+            let row = Int(floor(-r * (c.wedge ? 1.08 : 0.9) / PX))   // a wedge head's chin is narrow: the collar sits below it, on the neck
             let dk = col.blended(withFraction: 0.35, of: .black)!
-            px(-3, row, 8, 1, col); px(-3, row, 1, 1, dk); px(4, row, 1, 1, dk)
+            let (lo, w) = c.wedge ? (-2, 6) : (-3, 8)   // a slimmer collar on a slim neck
+            px(lo, row, w, 1, col); px(lo, row, 1, 1, dk); px(lo + w - 1, row, 1, 1, dk)
             px(0, row - 2, 2, 2, rgb(0xE8B931)); px(0, row - 1, 1, 1, rgb(0xFFF0A8)); px(1, row - 2, 1, 1, rgb(0x9C7414))
         }
     }
