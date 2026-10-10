@@ -50,6 +50,7 @@ namespace Purrgram
             catWin.MouseDown += CatMouseDown;
             catWin.MouseMove += CatMouseMove;
             catWin.MouseUp += CatMouseUp;
+            catWin.MouseCaptureChanged += (s, e) => { if (mouseIsDown && !catWin.Capture) EndPress(); };
             bowlWin.Show();
             catWin.Show();   // shown second so it stacks in front of the bowls
 
@@ -98,9 +99,7 @@ namespace Purrgram
         {
             var screen = Screen.PrimaryScreen;
             work = screen.WorkingArea;
-            double dpi = 96;
-            try { using (var g = Graphics.FromHwnd(IntPtr.Zero)) dpi = g.DpiX; } catch { }
-            scale = Math.Max(2, (int)Math.Round(3 * dpi / 96));
+            scale = Math.Max(2, (int)Math.Round(3 * Dpi() / 96.0));
             U = scale / 3.0;
             cat.Left = work.Left / U; cat.Right = work.Right / U; cat.Height = work.Height / U;
             cat.BowlX = Math.Round(work.Right / U - 150);
@@ -108,6 +107,18 @@ namespace Purrgram
             catCanvas = new Bitmap(Assets.FrameW * scale, Assets.FrameH * scale, PixelFormat.Format32bppArgb);
             bowlCanvas = new Bitmap(Assets.BowlW * scale, Assets.BowlH * scale, PixelFormat.Format32bppArgb);
         }
+
+        /// The primary monitor's DPI. Ask the cat's own window first: the process-wide value only updates at sign-in.
+        int Dpi()
+        {
+            int dpi = Native.WindowDpi(catWin.Handle);
+            if (dpi > 0) return dpi;
+            try { using (var g = Graphics.FromHwnd(IntPtr.Zero)) return (int)g.DpiX; } catch { return 96; }
+        }
+
+        /// The taskbar moved, resized or auto-hides, or the display scaling changed (none of which always send a display event).
+        bool GeometryChanged() =>
+            Screen.PrimaryScreen.WorkingArea != work || Math.Max(2, (int)Math.Round(3 * Dpi() / 96.0)) != scale;
 
         Point CatWindowPos() => new Point((int)Math.Round(cat.X * U) - Assets.OriginX * scale,
                                           work.Bottom - (int)Math.Round(cat.Y * U) - (Assets.FrameH - Assets.OriginY) * scale);
@@ -150,7 +161,12 @@ namespace Purrgram
             if (paused) return;
 
             fullT += dt;
-            if (fullT > 2) { fullT = 0; hiddenForFullScreen = Native.FullScreenAppActive(); }
+            if (fullT > 2)
+            {
+                fullT = 0; hiddenForFullScreen = Native.FullScreenAppActive();
+                if (GeometryChanged()) remeasure = true;
+            }
+            if (mouseIsDown && !Native.LeftButtonDown()) EndPress();   // the button-up went to another window
             bool visible = !hiddenByUser && !hiddenForFullScreen;
             if (catWin.Visible != visible) { catWin.Visible = visible; bowlWin.Visible = visible; lastCatKey = lastBowlKey = ""; }
 
@@ -325,10 +341,18 @@ namespace Purrgram
         void CatMouseUp(object s, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left || !mouseIsDown) return;
+            if (dragging) { EndPress(); return; }
             mouseIsDown = false;
-            if (dragging) { dragging = false; cat.Drop(dragVx, dragVy); return; }
             lastUpT = clock.Elapsed.TotalSeconds;
             pendingPetAt = lastUpT + Math.Min(SystemInformation.DoubleClickTime / 1000.0, 0.3);
+        }
+
+        /// The press is over: let go of the cat if it was being carried. Also called when the mouse-up never
+        /// arrives (Alt-Tab, Win key, a UAC prompt or locking the PC mid-drag), so the cat can't stay stuck to the cursor.
+        void EndPress()
+        {
+            mouseIsDown = false;
+            if (dragging) { dragging = false; cat.Drop(dragVx, dragVy); }
         }
 
         void BowlMouseDown(object s, MouseEventArgs e)
@@ -369,8 +393,10 @@ namespace Purrgram
         void BuildMenu()
         {
             var menu = tray.ContextMenuStrip;
-            foreach (ToolStripItem old in menu.Items) old.Image?.Dispose();
+            var olds = new List<ToolStripItem>();
+            foreach (ToolStripItem old in menu.Items) olds.Add(old);
             menu.Items.Clear();
+            foreach (var old in olds) { old.Image?.Dispose(); old.Dispose(); }   // also frees the Coat/Mood submenus' windows
             var head = new ToolStripMenuItem($"{state.Name} {cat.Mood}") { Enabled = false };
             head.Font = new Font(head.Font, FontStyle.Bold);
             menu.Items.Add(head);

@@ -421,7 +421,11 @@ namespace Purrgram
 
         public void StartCarry() { Queue.Clear(); Act = Act.Of(A.Carried); ActT = 0; }
 
-        public void Carry(double mx, double my) { X = mx; Y = Math.Max(0, my - 66 * Cs); }
+        public void Carry(double mx, double my)
+        {
+            if (Act.Kind != A.Carried) return;
+            X = mx; Y = Math.Max(0, my - 66 * Cs);
+        }
 
         public void Drop(double vx, double vy)
         {

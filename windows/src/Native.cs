@@ -26,6 +26,18 @@ namespace Purrgram
         [DllImport("user32.dll")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
         [DllImport("shell32.dll")] public static extern int SHQueryUserNotificationState(out int state);
+        [DllImport("user32.dll")] public static extern short GetAsyncKeyState(int key);
+        [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr hwnd);
+
+        /// Whether the (logical) left mouse button is physically down right now, even if another app has the mouse.
+        public static bool LeftButtonDown() =>
+            (GetAsyncKeyState(SystemInformation.MouseButtonsSwapped ? 0x02 : 0x01) & 0x8000) != 0;
+
+        /// The DPI of the monitor `hwnd` is on (Windows 10 1607+), or 0 if that can't be told.
+        public static int WindowDpi(IntPtr hwnd)
+        {
+            try { return (int)GetDpiForWindow(hwnd); } catch { return 0; }
+        }
 
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOACTIVATE = 0x10;
@@ -52,6 +64,13 @@ namespace Purrgram
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.Manual;
             TopMost = true;
+            SetStyle(ControlStyles.Selectable, false);   // clicking the cat must not take the keyboard from the user's app
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x21 /* WM_MOUSEACTIVATE */) { m.Result = (IntPtr)3 /* MA_NOACTIVATE */; return; }
+            base.WndProc(ref m);
         }
 
         protected override CreateParams CreateParams
