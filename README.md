@@ -2,7 +2,7 @@
 
 A little pixel-art cat that lives on your Mac desktop. It walks along the bottom of your screen, jumps onto your windows (and rides along when you drag them), naps, grooms, gets the zoomies, hides under windows, and needs you to keep its food and water bowls full.
 
-![Purrgram](preview.png)
+![Purrgram](hero.png)
 
 | | | |
 |---|---|---|
