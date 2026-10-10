@@ -1,11 +1,11 @@
 #!/bin/bash
-# Builds "Press Paws.app" (Apple Silicon + Intel) and a shareable "Press Paws.zip".
+# Builds "Purrgram.app" (Apple Silicon + Intel) and a shareable "Purrgram.zip".
 # (The executable, bundle ID and save folder keep the old DesktopCat name so existing cats carry over.)
 set -euo pipefail
 cd "$(dirname "$0")"
 
-NAME="Press Paws"
-FILE="Press-Paws"   # download file names: no spaces (GitHub turns them into dots)
+NAME="Purrgram"
+FILE="$NAME"         # download file names (keep them free of spaces: GitHub turns spaces into dots)
 APP="build/$NAME.app"
 rm -rf build && mkdir -p build
 
@@ -25,8 +25,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Press Paws</string>
-  <key>CFBundleDisplayName</key><string>Press Paws</string>
+  <key>CFBundleName</key><string>Purrgram</string>
+  <key>CFBundleDisplayName</key><string>Purrgram</string>
   <key>CFBundleIdentifier</key><string>com.desktopcat.app</string>
   <key>CFBundleExecutable</key><string>DesktopCat</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>

@@ -1,15 +1,15 @@
-Press Paws 🐱  — a little cat that lives on your Mac desktop
+Purrgram 🐱  — a little cat that lives on your Mac desktop
 
 INSTALL
- 1. Open the download, then drag Press Paws onto the Applications folder
+ 1. Open the download, then drag Purrgram onto the Applications folder
     shortcut right next to it (or into Applications in any Finder window).
  2. Double-click it. macOS will probably say it "can't be opened"
     because it isn't from the App Store. To allow it:
       • Open System Settings → Privacy & Security
-      • Scroll down and click "Open Anyway" next to Press Paws
+      • Scroll down and click "Open Anyway" next to Purrgram
       • Click Open again when asked
     (On older macOS you can instead right-click the app → Open → Open.)
-    Or, in Terminal:  xattr -dr com.apple.quarantine "/Applications/Press Paws.app"
+    Or, in Terminal:  xattr -dr com.apple.quarantine "/Applications/Purrgram.app"
  3. Name your cat!
 
 PLAYING
@@ -24,7 +24,7 @@ The cat wanders, jumps onto your windows (and rides along if you drag
 them), squeezes underneath big windows to hide, naps, grooms, scratches,
 gets the zoomies, and pounces at your cursor. If the bowls run empty
 they'll sit by them and complain. Their stats only change while your Mac
-is awake and Press Paws is running — close the lid and everything pauses.
+is awake and Purrgram is running — close the lid and everything pauses.
 It's light on battery, and automatically goes easier still in Low Power Mode.
 
 Needs macOS 12 or newer. Works on Apple Silicon and Intel Macs.
