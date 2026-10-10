@@ -14,7 +14,7 @@ It also needs looking after, a bit like a Tamagotchi. Keep its food and water bo
 
 ## Download
 
-Pick your computer:
+Pick your type:
 
 | [![Download for Mac](https://img.shields.io/badge/Download_for-Mac-000000?style=for-the-badge&logo=apple&logoColor=white)](../../releases/latest/download/Purrgram.dmg) | [![Download for Windows (beta)](https://img.shields.io/badge/Download_for-Windows_(beta)-0078D4?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest/download/Purrgram-Windows.zip) |
 |:---:|:---:|
