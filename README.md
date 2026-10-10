@@ -8,12 +8,12 @@ A little pixel-art cat that lives on your Mac desktop. It walks along the bottom
 |---|---|---|
 | ![Catching a window edge](edge-catch.gif) | ![Scratching a window](scratching.gif) | ![Hide Everything](hide-toggle.gif) |
 
-**Download:** grab `Press Paws.dmg` from the [latest release](../../releases/latest).
+**Download:** grab `Press-Paws.dmg` from the [latest release](../../releases/latest).
 Needs macOS 12 or newer. Works on Apple Silicon and Intel Macs.
 
 ## Install
 
-1. Open `Press Paws.dmg` and drag **Press Paws** onto the **Applications** folder next to it. Then eject the disk image.
+1. Open `Press-Paws.dmg` and drag **Press Paws** onto the **Applications** folder next to it. Then eject the disk image.
 2. Open Press Paws from Applications. macOS will say Apple couldn't verify it, because it isn't from the App Store.
    Click **Done** (not "Move to Trash").
 3. Go to **System Settings → Privacy & Security**, scroll down, click **Open Anyway** next to Press Paws, and confirm.
@@ -27,7 +27,7 @@ You only do steps 2–3 once.
 Each release lists a SHA-256 fingerprint for the DMG. In Terminal:
 
 ```bash
-shasum -a 256 ~/Downloads/Press\ Paws.dmg
+shasum -a 256 ~/Downloads/Press-Paws.dmg
 ```
 
 The result should match the fingerprint on the release page exactly.
@@ -54,4 +54,4 @@ Requires the Xcode command line tools (`xcode-select --install`). Pure Swift wit
 ./build.sh
 ```
 
-This compiles a universal app, runs a self-test, and writes `build/Press Paws.app`, `build/Press Paws.dmg`, `build/Press Paws.zip` and `build/SHA256.txt`. A copy you build yourself opens without any security warning.
+This compiles a universal app, runs a self-test, and writes `build/Press Paws.app`, `build/Press-Paws.dmg`, `build/Press-Paws.zip` and `build/SHA256.txt`. A copy you build yourself opens without any security warning.

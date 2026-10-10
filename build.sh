@@ -5,6 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 NAME="Press Paws"
+FILE="Press-Paws"   # download file names: no spaces (GitHub turns them into dots)
 APP="build/$NAME.app"
 rm -rf build && mkdir -p build
 
@@ -55,11 +56,11 @@ echo "• Zipping for friends…"
 mkdir -p "build/share/$NAME"
 cp -R "$APP" "build/share/$NAME/"
 cp "READ ME FIRST.txt" "build/share/$NAME/"
-ditto -c -k --norsrc --noextattr --keepParent "build/share/$NAME" "build/$NAME.zip"
+ditto -c -k --norsrc --noextattr --keepParent "build/share/$NAME" "build/$FILE.zip"
 rm -rf build/cat-* "$ICONSET" build/share
 
 echo "• Making the drag-to-Applications disk image…"
-DMG="build/$NAME.dmg"; RW=build/rw.dmg; STAGE=build/dmg
+DMG="build/$FILE.dmg"; RW=build/rw.dmg; STAGE=build/dmg
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 cp "READ ME FIRST.txt" "$STAGE/"
@@ -95,7 +96,7 @@ rm -rf "$RW" "$STAGE"
 codesign --force -s - "$DMG"
 
 # Fingerprints: send these to friends separately (e.g. by text) so they can check the download is really yours.
-( cd build && shasum -a 256 "$NAME.dmg" "$NAME.zip" > SHA256.txt )
+( cd build && shasum -a 256 "$FILE.dmg" "$FILE.zip" > SHA256.txt )
 
-echo "✓ Done: $APP, build/$NAME.zip and $DMG"
+echo "✓ Done: $APP, build/$FILE.zip and $DMG"
 echo "  Fingerprints (build/SHA256.txt):"; sed 's/^/    /' build/SHA256.txt
