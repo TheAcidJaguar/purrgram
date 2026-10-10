@@ -174,11 +174,40 @@ func renderIcon(_ path: String) {
     let cat = Cat(world: World(), state: SaveState(), sound: SoundBox())
     cat.act = .sit(9); cat.time = 0
     var p = cat.makePose(); p.eyes = .happy; p.shadow = false
+    guard let raw = Painter.image(p, coat: coats[0], facing: 1, size: CGSize(width: 120, height: 120), origin: P(60, 18)),
+          let sprite = croppedToContent(raw) else { return }
     renderPNG(size: CGSize(width: 1024, height: 1024), scale: 1, to: path) { ctx in
-        let bg = NSBezierPath(roundedRect: NSRect(x: 100, y: 100, width: 824, height: 824), xRadius: 185, yRadius: 185)
-        rgb(0xF7B9A8).setFill(); bg.fill()
-        if let img = Painter.image(p, coat: coats[0], facing: 1, size: CGSize(width: 120, height: 120), origin: P(60, 18)) {
-            ctx.draw(img, in: CGRect(x: 512 - 360, y: 140, width: 720, height: 720))
-        }
+        // Standard macOS icon grid: an 824pt rounded tile centered on the 1024 canvas, with a soft drop shadow.
+        let tile = CGRect(x: 100, y: 100, width: 824, height: 824)
+        let shape = CGPath(roundedRect: tile, cornerWidth: 185, cornerHeight: 185, transform: nil)
+        ctx.saveGState()
+        ctx.setShadow(offset: CGSize(width: 0, height: -10), blur: 24, color: NSColor.black.withAlphaComponent(0.28).cgColor)
+        ctx.addPath(shape); ctx.setFillColor(rgb(0xF5B19E).cgColor); ctx.fillPath()
+        ctx.restoreGState()
+        ctx.saveGState()   // gentle top-to-bottom gradient
+        ctx.addPath(shape); ctx.clip()
+        let grad = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
+                              colors: [rgb(0xFBD3C5).cgColor, rgb(0xF2A48F).cgColor] as CFArray, locations: [0, 1])!
+        ctx.drawLinearGradient(grad, start: CGPoint(x: 512, y: tile.maxY), end: CGPoint(x: 512, y: tile.minY), options: [])
+        ctx.restoreGState()
+        // The cat, scaled by a whole number so every art pixel stays a crisp square, centered in the tile.
+        let k = floor(min(560 / CGFloat(sprite.height), 560 / CGFloat(sprite.width)))
+        let w = CGFloat(sprite.width) * k, h = CGFloat(sprite.height) * k
+        ctx.interpolationQuality = .none
+        ctx.draw(sprite, in: CGRect(x: (512 - w / 2).rounded(), y: (512 - h / 2).rounded(), width: w, height: h))
     }
+}
+
+/// Trim the transparent margin around a sprite.
+func croppedToContent(_ img: CGImage) -> CGImage? {
+    let w = img.width, h = img.height
+    guard let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+    else { return nil }
+    ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
+    guard let px = ctx.data?.bindMemory(to: UInt32.self, capacity: w * h) else { return nil }
+    var x0 = w, y0 = h, x1 = -1, y1 = -1
+    for y in 0..<h { for x in 0..<w where px[y * w + x] >> 24 != 0 { x0 = min(x0, x); x1 = max(x1, x); y0 = min(y0, y); y1 = max(y1, y) } }
+    guard x1 >= x0 else { return nil }
+    return img.cropping(to: CGRect(x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1))   // memory rows run top-down, like cropping
 }

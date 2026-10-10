@@ -58,4 +58,40 @@ cp "READ ME FIRST.txt" "build/share/$NAME/"
 ditto -c -k --norsrc --noextattr --keepParent "build/share/$NAME" "build/$NAME.zip"
 rm -rf build/cat-* "$ICONSET" build/share
 
-echo "✓ Done: $APP and build/$NAME.zip"
+echo "• Making the drag-to-Applications disk image…"
+DMG="build/$NAME.dmg"; RW=build/rw.dmg; STAGE=build/dmg
+mkdir -p "$STAGE"
+cp -R "$APP" "$STAGE/"
+cp "READ ME FIRST.txt" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+hdiutil create -quiet -volname "$NAME" -srcfolder "$STAGE" -fs HFS+ -format UDRW -ov "$RW"
+# Lay out the window: app on the left, Applications on the right. Needs one-time permission to control
+# Finder; if that's refused the image still works, just with Finder's default layout.
+MNT=$(hdiutil attach -readwrite -noverify -noautoopen "$RW" | awk -F'\t' '/\/Volumes\//{print $NF}')
+osascript >/dev/null 2>&1 <<APPLESCRIPT || echo "  (couldn't arrange the window — using Finder's default layout)"
+tell application "Finder"
+  tell disk "$NAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {200, 120, 760, 470}
+    set opts to the icon view options of container window
+    set arrangement of opts to not arranged
+    set icon size of opts to 112
+    set text size of opts to 13
+    set position of item "$NAME.app" of container window to {140, 150}
+    set position of item "Applications" of container window to {420, 150}
+    set position of item "READ ME FIRST.txt" of container window to {280, 290}
+    close
+  end tell
+end tell
+APPLESCRIPT
+sync
+hdiutil detach -quiet "$MNT"
+rm -f "$DMG"
+hdiutil convert -quiet "$RW" -format UDZO -imagekey zlib-level=9 -o "$DMG"
+rm -rf "$RW" "$STAGE"
+codesign --force -s - "$DMG"
+
+echo "✓ Done: $APP, build/$NAME.zip and $DMG"

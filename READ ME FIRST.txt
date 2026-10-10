@@ -1,7 +1,8 @@
 Press Paws 🐱  — a little cat that lives on your Mac desktop
 
 INSTALL
- 1. Unzip, then drag Press Paws.app into your Applications folder.
+ 1. Open the download, then drag Press Paws onto the Applications folder
+    shortcut right next to it (or into Applications in any Finder window).
  2. Double-click it. macOS will probably say it "can't be opened"
     because it isn't from the App Store. To allow it:
       • Open System Settings → Privacy & Security
