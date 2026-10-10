@@ -32,6 +32,40 @@ struct Pose: Equatable {
     var rot: CGFloat = 0
 }
 
+extension Limb {
+    func mix(_ o: Limb, _ k: CGFloat) -> Limb {
+        func m(_ a: CGPoint, _ b: CGPoint) -> CGPoint { P(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k) }
+        let mid = P((hip.x + foot.x) / 2, (hip.y + foot.y) / 2), omid = P((o.hip.x + o.foot.x) / 2, (o.hip.y + o.foot.y) / 2)
+        return Limb(hip: m(hip, o.hip), foot: m(foot, o.foot), knee: m(knee ?? mid, o.knee ?? omid), far: far, w: w + (o.w - w) * k)
+    }
+    func shifted(_ dy: CGFloat) -> Limb {
+        Limb(hip: hip.off(0, dy), foot: foot.off(0, dy), knee: knee?.off(0, dy), far: far, w: w)
+    }
+}
+
+extension Pose {
+    /// Blend two poses (same number of legs and tail points); discrete details come from whichever is nearer.
+    func mix(_ o: Pose, _ k: CGFloat) -> Pose {
+        func m(_ a: CGPoint, _ b: CGPoint) -> CGPoint { P(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k) }
+        func f(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * k }
+        var p = k < 0.5 ? self : o
+        p.bodyC = m(bodyC, o.bodyC); p.bodyW = f(bodyW, o.bodyW); p.bodyH = f(bodyH, o.bodyH); p.bodyRot = f(bodyRot, o.bodyRot)
+        p.headC = m(headC, o.headC); p.headR = f(headR, o.headR); p.headTilt = f(headTilt, o.headTilt); p.earFlat = f(earFlat, o.earFlat)
+        if legs.count == o.legs.count { p.legs = zip(legs, o.legs).map { $0.mix($1, k) } }
+        if tail.count == o.tail.count { p.tail = zip(tail, o.tail).map { m($0, $1) } }
+        p.tailW = f(tailW, o.tailW)
+        return p
+    }
+    /// The same pose moved up (or down) by `dy`.
+    func shifted(_ dy: CGFloat) -> Pose {
+        var p = self
+        p.bodyC = bodyC.off(0, dy); p.headC = headC.off(0, dy); p.haunchC = haunchC?.off(0, dy)
+        p.legs = legs.map { $0.shifted(dy) }; p.frontLimb = frontLimb?.shifted(dy)
+        p.tail = tail.map { $0.off(0, dy) }
+        return p
+    }
+}
+
 let catScale: CGFloat = 0.85   // poses are authored at 1.0; the cat is drawn a little smaller
 
 /// A view onto a bitmap context's pixels (rows run top to bottom in memory).

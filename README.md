@@ -10,7 +10,7 @@ It also needs looking after, a bit like a Tamagotchi. Keep its food and water bo
 
 | | | |
 |---|---|---|
-| ![Catching a window edge](edge-catch.gif) | ![Scratching a window](scratching.gif) | ![Hide Everything](hide-everything.gif) |
+| ![Catching a window edge](edge-catch-climb.gif) | ![Scratching a window](scratching.gif) | ![Hide Everything](hide-everything.gif) |
 
 **Download:** grab `Purrgram.dmg` from the [latest release](../../releases/latest).
 Needs macOS 12 or newer. Works on Apple Silicon and Intel Macs.

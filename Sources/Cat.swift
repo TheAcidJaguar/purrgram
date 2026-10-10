@@ -75,6 +75,18 @@ final class Cat {
     var trait: Personality { Personality(rawValue: s.personality) ?? .curious }
     var fluffy: Bool { coats[s.coat % coats.count].fluff }
     static let hangEdge: CGFloat = 62                           // pose-local height of the window edge while hanging
+    static let climbTime = 0.9                                  // hauling up from the hang onto the window top
+
+    /// Climb progress: `a` = hauling the chest up to the edge, then `b` = tipping over onto the top (both eased 0…1).
+    static func climbPhases(_ t: Double) -> (CGFloat, CGFloat) {
+        func ease(_ v: Double) -> CGFloat { let c = CGFloat(min(max(v, 0), 1)); return c * c * (3 - 2 * c) }
+        return (ease(t / (climbTime / 2)), ease((t - climbTime / 2) / (climbTime / 2)))
+    }
+    /// How far (pose-local) the window's top edge is above the cat's feet anchor at time `t` of the climb.
+    static func climbEdge(_ t: Double) -> CGFloat {
+        let (a, b) = climbPhases(t)
+        return hangEdge * (1 - 0.55 * a) * (1 - b)
+    }
 
     var cs: CGFloat { catScale * coats[s.coat % coats.count].size * CGFloat(s.sizeMul) }   // on-screen scale for this breed + size setting
     var lowPower = false        // Battery Saver: skip purely decorative particles
@@ -440,9 +452,8 @@ final class Cat {
         case .pullUp(let id):
             guard let p = world.plat(id) else { act = .hop(0, 0); actT = 0; break }
             x += p.rect.minX - surfRect.minX; surfRect = p.rect
-            let k = CGFloat(min(actT / 0.7, 1))
-            y = p.top - Cat.hangEdge * cs * (1 - k * k)
-            if actT >= 0.7 { y = p.top; settle(.window(id), p.rect); done = true }
+            y = p.top - Cat.climbEdge(actT) * cs   // paws stay on the edge; the body does the moving
+            if actT >= Cat.climbTime { y = p.top; settle(.window(id), p.rect); done = true }
         case .face, .goTo: done = true
         case .crouch(let d): done = actT >= d
         case .land: done = actT >= 0.22

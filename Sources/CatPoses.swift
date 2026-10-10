@@ -72,7 +72,7 @@ extension Cat {
         case .hairball: p = hairballPose(actT)
         case .leapCatch: p = airPose()
         case .hang: p = hangPose(actT)
-        case .pullUp: p = actT < 0.45 ? hangPose(actT, lift: CGFloat(actT / 0.45)) : standPose(phase: 0, amp: 0, crouch: 0.7)
+        case .pullUp: p = climbPose(actT)
         }
         if case .window = surface, p.tail.count == 4 {
             switch act {
@@ -416,6 +416,32 @@ extension Cat {
                   Limb(hip: P(-3, 18), foot: P(2 + 6 * k1 * scrabble, 4 + 9 * k1 * scrabble), knee: P(-9, 10))]
         let sway = CGFloat(sin(time * 2.2)) * 3
         p.tail = [P(-8, 18), P(-12, 6), P(-8, -6), P(-12 + sway, -18)]
+        return p
+    }
+
+    /// Climbing up from the hang. Every point is placed relative to the window's top edge, which sits
+    /// `Cat.climbEdge(t)` above the feet anchor, so the front paws stay planted on the edge while the body moves:
+    /// first the cat hauls its chest up to the edge (elbows bending, head over the top, back feet scrabbling),
+    /// then it tips forward over the edge and brings its back legs up, ending crouched on top.
+    func climbPose(_ t: Double) -> Pose {
+        let (a, b) = Cat.climbPhases(t)
+        let edge = Cat.climbEdge(t)
+        let hang = hangPose(t).shifted(-Cat.hangEdge)          // the hang, with the edge at y = 0
+        var chest = Pose()                                      // chest hauled up level with the edge
+        chest.bodyC = P(4, -10); chest.bodyW = 46; chest.bodyH = 26; chest.bodyRot = 1.05
+        chest.headC = P(16, 13); chest.eyes = .strain; chest.earFlat = 0.35
+        let ft = CGFloat(t), k1 = (sin(ft * 20) + 1) / 2, k2 = (sin(ft * 20 + 2.4) + 1) / 2
+        chest.legs = [Limb(hip: P(10, -2), foot: P(33, 1), knee: P(4, 9), far: true),           // forearms flat on the top
+                      Limb(hip: P(-6, -28), foot: P(-2 + 5 * k2, -44 + 8 * k2), knee: P(-13, -36), far: true),
+                      Limb(hip: P(14, -2), foot: P(41, 1), knee: P(9, 8)),
+                      Limb(hip: P(-3, -28), foot: P(1 + 5 * k1, -46 + 8 * k1), knee: P(-10, -38))]
+        chest.tail = [P(-6, -26), P(-11, -38), P(-7, -50), P(-11, -62)]
+        chest.shadow = false
+        var top = standPose(phase: 0, amp: 0, crouch: 0.7)      // crouched on top of the window
+        top.eyes = .open
+        var p = b > 0 ? chest.mix(top, b) : hang.mix(chest, a)
+        p = p.shifted(edge)
+        p.shadow = edge < 1
         return p
     }
 
