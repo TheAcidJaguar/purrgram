@@ -32,7 +32,7 @@ shasum -a 256 ~/Downloads/Purrgram.dmg
 
 The result should match the fingerprint on the release page exactly.
 
-## Playing
+## How to guide
 
 - **Click** the cat to pet it (they purr, but don't overdo it)
 - **Double-click** to shoo it out of the way
