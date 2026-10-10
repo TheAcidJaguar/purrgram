@@ -69,7 +69,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var pendingSave: DispatchWorkItem?
     var last = CACurrentMediaTime()
     var saveAcc = 0.0, frontAcc = 0.0
-    var bowlsInFront = false
 
     func applicationDidFinishLaunching(_ n: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -90,7 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         catWin = makeWindow(NSRect(x: cat.x - OX, y: cat.y - OY, width: VW, height: VH))
         catView = CatView(frame: NSRect(x: 0, y: 0, width: VW, height: VH))
-        catView.cat = cat
+        catView.cat = cat; catView.bowlView = bowlView
         catWin.contentView = catView
         catWin.orderFrontRegardless()
 
@@ -235,8 +234,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let o = P((cat.x - OX).rounded() + cat.shake, (cat.y - OY).rounded())
         if catWin.frame.origin != o { catWin.setFrameOrigin(o) }
         if catView.dirty() { catView.needsDisplay = true }
-        let eating: Bool = { if case .eat = cat.act { return true }; return false }()
-        if eating != bowlsInFront { bowlsInFront = eating; restack() }
         frontAcc += dt
         if frontAcc > 2 { frontAcc = 0; restack() }
         for (t, w, v) in [(toy, toyWin, toyView), (treat, treatWin, treatView), (hairball, hairballWin, hairballView)] {
@@ -253,12 +250,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateHits()
     }
 
-    /// The cat stays above its bowls and toys, except while eating: then the bowls come to the front so the cat's
-    /// head dips into the bowl behind its rim.
-    func restack() {
-        catWin.orderFrontRegardless()
-        if bowlsInFront { bowlWin.orderFrontRegardless() }
-    }
+    /// The cat stays above its bowls and toys. (While it eats, CatView draws the bowl's front wall over its face.)
+    func restack() { catWin.orderFrontRegardless() }
 
     /// Our windows only accept clicks right over the cat, a bowl, the yarn or a hairball; everywhere else clicks pass through.
     func updateHits() {

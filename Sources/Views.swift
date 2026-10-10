@@ -10,6 +10,8 @@ struct RenderKey: Equatable {
 
 final class CatView: NSView {
     var cat: Cat!
+    weak var bowlView: BowlView?
+    var eatingAtBowl: Bool { if case .eat = cat.act { return true }; return false }
     var cachedKey: RenderKey?, cachedImage: CGImage?
     var lastCuts: [CGRect] = [], hadParticles = false
 
@@ -28,7 +30,7 @@ final class CatView: NSView {
     func dirty() -> Bool {
         let particles = !cat.hearts.isEmpty || !cat.fur.isEmpty || !cat.litter.isEmpty || cat.brushMode
         defer { hadParticles = particles }
-        return renderKey() != cachedKey || particles || hadParticles || cuts() != lastCuts
+        return renderKey() != cachedKey || particles || hadParticles || cuts() != lastCuts || eatingAtBowl
     }
     var downAt = CGPoint.zero, dragging = false
     var pendingPet: DispatchWorkItem?
@@ -112,6 +114,12 @@ final class CatView: NSView {
             }
             for h in cat.hearts where !(h.age > 1.1 && Int(h.age * 12) % 2 == 0) {   // blink out at the end
                 CatView.drawHeart(ctx, at: P(h.p.x - o.x, h.p.y - o.y))
+            }
+            if eatingAtBowl, let bv = bowlView, let bf = bv.window?.frame.origin, let front = bv.frontImage() {
+                // The bowl's front wall goes over the cat's face, exactly on top of the bowl's own pixels.
+                ctx.interpolationQuality = .none
+                for r in BowlView.underBowls { ctx.clear(r.offsetBy(dx: bf.x - o.x, dy: bf.y - o.y)) }
+                ctx.draw(front, in: CGRect(origin: P(bf.x - o.x, bf.y - o.y), size: bv.bounds.size))
             }
             for r in cat.occluders() { ctx.clear(r.offsetBy(dx: -o.x, dy: -o.y)) }
         }
@@ -264,14 +272,31 @@ final class BowlView: NSView {
         return g
     }
 
-    func paint(_ ctx: CGContext, _ g: [[Character]], col: Int, row: Int) {
-        for (r, line) in g.enumerated() {
+    /// First grid row of each bowl's front wall. Everything from this row down is drawn in front of the cat's
+    /// face while it eats or drinks, so the face goes down inside the bowl; the back rim and the inside stay behind it.
+    static let foodFrontRow = 5, waterFrontRow = 2
+
+    func paint(_ ctx: CGContext, _ g: [[Character]], col: Int, row: Int, fromRow: Int = 0) {
+        for (r, line) in g.enumerated() where r >= fromRow {
             for (c, ch) in line.enumerated() {
                 guard let color = BowlView.palette[ch] else { continue }
                 ctx.setFillColor(color.cgColor)
                 ctx.fill(CGRect(x: CGFloat(col + c) * PX, y: CGFloat(row + g.count - 1 - r) * PX, width: PX, height: PX))
             }
         }
+    }
+
+    /// The strip under each bowl, in this view's coordinates. With its face down in a bowl, the cat's chin would
+    /// otherwise poke out below the bowl, so the cat clears these before drawing the front walls.
+    static let underBowls = [CGRect(x: CGFloat(foodCol) * PX, y: 0, width: 16 * PX, height: PX),
+                             CGRect(x: CGFloat(waterCol) * PX, y: 0, width: 14 * PX, height: PX)]
+
+    /// Just the bowls' front walls, as an image the size of this view (the cat draws it over its face while eating).
+    func frontImage() -> CGImage? {
+        guard cat != nil, let ctx = pixelContext(bounds.size) else { return nil }
+        paint(ctx, foodGrid(shownFood), col: BowlView.foodCol, row: 1, fromRow: BowlView.foodFrontRow)
+        paint(ctx, waterGrid(shownWater), col: BowlView.waterCol, row: 1, fromRow: BowlView.waterFrontRow)
+        return ctx.makeImage()
     }
 
     override func draw(_ dirtyRect: NSRect) {

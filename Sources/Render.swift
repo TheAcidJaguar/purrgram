@@ -151,12 +151,23 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
             func bowls() {
                 if let b = bowlsImage(bv) { ctx.draw(b, in: CGRect(origin: P(world.bowlRect.minX, 0), size: BowlView.size)) }
             }
-            if (scene == "hide" || scene == "eat") && !eating { bowls() }
+            if scene == "hide" || scene == "eat" { bowls() }
             if let img = Painter.image(cat.pose, coat: coats[coat], facing: cat.facing, size: CGSize(width: VW, height: VH),
                                        origin: P(OX, OY), collar: rgb(0xC8323C)) {
-                ctx.draw(img, in: CGRect(x: (cat.x - OX).rounded() + cat.shake, y: (cat.y - OY).rounded(), width: VW, height: VH))
+                let at = CGRect(x: (cat.x - OX).rounded() + cat.shake, y: (cat.y - OY).rounded(), width: VW, height: VH)
+                if scene == "eat" && eating, let layer = CGContext(data: nil, width: Int(VW * scale), height: Int(VH * scale), bitsPerComponent: 8,
+                        bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) {
+                    layer.interpolationQuality = .none; layer.scaleBy(x: scale, y: scale)
+                    layer.draw(img, in: CGRect(x: 0, y: 0, width: VW, height: VH))
+                    for r in BowlView.underBowls { layer.clear(r.offsetBy(dx: world.bowlRect.minX - at.minX, dy: -at.minY)) }
+                    if let cut = layer.makeImage() { ctx.draw(cut, in: at) }
+                } else {
+                    ctx.draw(img, in: at)
+                }
             }
-            if scene == "eat" && eating { bowls() }   // the head dips in behind the rim
+            if scene == "eat" && eating, let front = bv.frontImage() {   // the face goes down inside the bowl
+                ctx.draw(front, in: CGRect(origin: P(world.bowlRect.minX, 0), size: BowlView.size))
+            }
         }
         if scene == "hide" {   // a little caption so the toggle reads in the clip
             let label = hidden ? "Hide Everything  ⌘H" : (t > 3.6 ? "Unhide  ⌘H" : "")

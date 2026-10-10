@@ -331,10 +331,9 @@ extension Cat {
         return p
     }
 
-    /// Crouched and leaning in over the bowl, head dipped inside it (the app draws the bowls in front of the cat
-    /// while it eats, so the rim hides its chin). Food: dip, grab a mouthful, crunch; every few seconds the head
-    /// comes up out of the bowl to chew and glance around. Water: head low, eyes half shut, quick lapping bobs.
-    /// `bowl: false` (a treat on the floor) drops the head all the way down.
+    /// Standing over the bowl with its face down inside it: the bowl's front wall is drawn over the face
+    /// (BowlView.frontImage), so only the ears and the top of the head show above the rim. Food: dip and crunch.
+    /// Water: quick lapping bobs. `bowl: false` (a treat on the floor) drops the head all the way down instead.
     func eatPose(_ t: Double, _ water: Bool, bowl: Bool = true) -> Pose {
         var p = standPose(phase: 0, amp: 0, crouch: 0.1)
         let ft = CGFloat(t), low: CGFloat = bowl ? 0 : -13
@@ -342,21 +341,16 @@ extension Cat {
         p.legs[0].foot.x += 4; p.legs[2].foot.x += 4         // front paws planted forward, by the bowl
         let tip = CGFloat(sin(time * 1.6)) * 3               // tail held out behind in a relaxed curve, tip twitching
         p.tail = [P(-25, 22), P(-38, 24), P(-47, 32), P(-46 + tip, 42)]
-        if water {
+        p.eyes = .closed
+        p.earFlat = 0.1 + CGFloat(max(0, sin(ft * 1.3) - 0.8)) * 1.2   // an occasional ear flick
+        if water {   // quick little laps
             let lap = sin(ft * 13)
-            p.headC = P(32, 33 + low + CGFloat(max(0, lap)) * 1.5)
-            p.eyes = .half; p.earFlat = 0.12
+            p.headC = P(32, 24 + low + CGFloat(max(0, lap)) * 1.5)
             p.mouth = lap > 0 ? .tongue : .none
-        } else if t.truncatingRemainder(dividingBy: 5) < 3.6 {
+        } else {     // dip, grab a mouthful, crunch
             let bite = sin(ft * 5)
-            p.headC = P(32, 26 + low + CGFloat(max(0, bite)) * 4)
-            p.eyes = .closed
+            p.headC = P(32, 17 + low + CGFloat(max(0, bite)) * 3)
             p.mouth = bite > 0.3 ? .chew : .none
-        } else {   // up out of the bowl for a moment: chew, chew, look around
-            p.headC = P(30, 38 + low)
-            p.eyes = .half; p.headTilt = CGFloat(sin(ft * 2)) * 0.12
-            p.mouth = sin(ft * 12) > 0 ? .chew : .none
-            p.earFlat = CGFloat(sin(ft * 3)) * 0.15
         }
         return p
     }
