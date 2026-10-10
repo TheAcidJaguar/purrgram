@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds "Purrgram.app" (Apple Silicon + Intel) and a shareable "Purrgram.zip".
+# Builds "Purrgram.app" (Apple Silicon + Intel) and the shareable "Purrgram.dmg".
 # (The executable, bundle ID and save folder keep the old DesktopCat name so existing cats carry over.)
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -52,12 +52,7 @@ iconutil -c icns $ICONSET -o "$APP/Contents/Resources/AppIcon.icns"
 echo "• Signing (ad-hoc)…"
 codesign --force --deep -s - "$APP"
 
-echo "• Zipping for friends…"
-mkdir -p "build/share/$NAME"
-cp -R "$APP" "build/share/$NAME/"
-cp "READ ME FIRST.txt" "build/share/$NAME/"
-ditto -c -k --norsrc --noextattr --keepParent "build/share/$NAME" "build/$FILE.zip"
-rm -rf build/cat-* "$ICONSET" build/share
+rm -rf build/cat-* "$ICONSET"
 
 echo "• Making the drag-to-Applications disk image…"
 DMG="build/$FILE.dmg"; RW=build/rw.dmg; STAGE=build/dmg
@@ -96,7 +91,8 @@ rm -rf "$RW" "$STAGE"
 codesign --force -s - "$DMG"
 
 # Fingerprints: send these to friends separately (e.g. by text) so they can check the download is really yours.
-( cd build && shasum -a 256 "$FILE.dmg" "$FILE.zip" > SHA256.txt )
+# The release's SHA256.txt also gets the Windows zip's line (see windows/build.sh).
+( cd build && shasum -a 256 "$FILE.dmg" > SHA256.txt )
 
-echo "✓ Done: $APP, build/$FILE.zip and $DMG"
+echo "✓ Done: $APP and $DMG"
 echo "  Fingerprints (build/SHA256.txt):"; sed 's/^/    /' build/SHA256.txt

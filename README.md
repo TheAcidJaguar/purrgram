@@ -74,7 +74,7 @@ Requires the Xcode command line tools (`xcode-select --install`). Pure Swift wit
 ./build.sh
 ```
 
-This compiles a universal app, runs a self-test, and writes `build/Purrgram.app`, `build/Purrgram.dmg`, `build/Purrgram.zip` and `build/SHA256.txt`. A copy you build yourself opens without any security warning.
+This compiles a universal app, runs a self-test, and writes `build/Purrgram.app`, `build/Purrgram.dmg` and `build/SHA256.txt`. A copy you build yourself opens without any security warning.
 
 ### Windows (beta)
 
