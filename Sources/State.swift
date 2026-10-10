@@ -58,7 +58,7 @@ struct SaveState: Codable {
 enum Store {
     static var dir: URL {
         let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("DesktopCat", isDirectory: true)
+            .appendingPathComponent("DesktopCat", isDirectory: true)   // kept from the old name so existing cats carry over
         try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }

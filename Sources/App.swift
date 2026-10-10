@@ -35,7 +35,7 @@ enum MenuIcon {
             return true
         }
         img.isTemplate = true
-        img.accessibilityDescription = "DesktopCat"
+        img.accessibilityDescription = "Press Paws"
         return img
     }
 }
@@ -256,7 +256,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: system events
 
     /// Pause when nobody can see the screen (display asleep, Mac asleep, locked, screensaver, switched user).
-    /// The cat's bars only change while your Mac is awake and DesktopCat is running.
+    /// The cat's bars only change while your Mac is awake and Press Paws is running.
     func observeSystem() {
         let ws = NSWorkspace.shared.notificationCenter
         let pairs: [(NSNotification.Name, NSNotification.Name, String, Bool)] = [
@@ -350,7 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if allHidden {
             let it = add(menu, "Unhide \(s.name)", #selector(toggleHidden)); it.keyEquivalent = "h"
             menu.addItem(.separator())
-            add(menu, "Quit DesktopCat", #selector(quit))
+            add(menu, "Quit Press Paws", #selector(quit))
             return
         }
         let head = NSMenuItem(title: "", action: nil, keyEquivalent: "")
@@ -439,7 +439,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             add(menu, "Open at Login", #selector(toggleLogin)).state = SMAppService.mainApp.status == .enabled ? .on : .off
         }
         menu.addItem(.separator())
-        add(menu, "Quit DesktopCat", #selector(quit))
+        add(menu, "Quit Press Paws", #selector(quit))
     }
 
     @discardableResult
@@ -596,7 +596,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             NSApp.activate(ignoringOtherApps: true)
             let a = NSAlert()
             a.messageText = "Couldn't change the login setting"
-            a.informativeText = "Move DesktopCat into your Applications folder and try again.\n\n\(error.localizedDescription)"
+            a.informativeText = "Move Press Paws into your Applications folder and try again.\n\n\(error.localizedDescription)"
             a.runModal()
         }
     }

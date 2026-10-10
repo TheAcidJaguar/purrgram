@@ -32,7 +32,7 @@ final class SettingsController: NSObject, NSWindowDelegate {
     func build() {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 300), styleMask: [.titled, .closable],
                           backing: .buffered, defer: false)
-        window.title = "DesktopCat Settings"
+        window.title = "Press Paws Settings"
         window.isReleasedWhenClosed = false
         window.delegate = self
 

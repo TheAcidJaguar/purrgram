@@ -1,9 +1,11 @@
 #!/bin/bash
-# Builds DesktopCat.app (Apple Silicon + Intel) and a shareable DesktopCat.zip.
+# Builds "Press Paws.app" (Apple Silicon + Intel) and a shareable "Press Paws.zip".
+# (The executable, bundle ID and save folder keep the old DesktopCat name so existing cats carry over.)
 set -euo pipefail
 cd "$(dirname "$0")"
 
-APP="build/DesktopCat.app"
+NAME="Press Paws"
+APP="build/$NAME.app"
 rm -rf build && mkdir -p build
 
 echo "• Compiling…"
@@ -22,8 +24,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>DesktopCat</string>
-  <key>CFBundleDisplayName</key><string>DesktopCat</string>
+  <key>CFBundleName</key><string>Press Paws</string>
+  <key>CFBundleDisplayName</key><string>Press Paws</string>
   <key>CFBundleIdentifier</key><string>com.desktopcat.app</string>
   <key>CFBundleExecutable</key><string>DesktopCat</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
@@ -50,10 +52,10 @@ echo "• Signing (ad-hoc)…"
 codesign --force --deep -s - "$APP"
 
 echo "• Zipping for friends…"
-mkdir -p build/share/DesktopCat
-cp -R "$APP" build/share/DesktopCat/
-cp "READ ME FIRST.txt" build/share/DesktopCat/
-ditto -c -k --norsrc --noextattr --keepParent build/share/DesktopCat build/DesktopCat.zip
-rm -rf build/cat-* $ICONSET build/share
+mkdir -p "build/share/$NAME"
+cp -R "$APP" "build/share/$NAME/"
+cp "READ ME FIRST.txt" "build/share/$NAME/"
+ditto -c -k --norsrc --noextattr --keepParent "build/share/$NAME" "build/$NAME.zip"
+rm -rf build/cat-* "$ICONSET" build/share
 
-echo "✓ Done: $APP and build/DesktopCat.zip"
+echo "✓ Done: $APP and build/$NAME.zip"
