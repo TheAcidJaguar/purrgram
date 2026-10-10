@@ -1,0 +1,23 @@
+Purrgram for Windows (beta)
+===========================
+
+A little pixel cat that lives on your desktop, walking along the top of your taskbar.
+
+1. Unzip this folder somewhere you'll keep it (for example Documents).
+2. Double-click Purrgram.exe.
+   Windows will probably say "Windows protected your PC", because the app isn't signed
+   with a paid certificate. Click "More info", then "Run anyway". You only need to do this once.
+3. Your cat appears at the bottom of the screen, next to its food and water bowls.
+
+Playing
+- Click the cat to pet it. Double-click to shoo it.
+- Drag the cat to pick it up, and let go to drop (or toss) it.
+- Click a bowl to fill it.
+- Everything else is in the cat icon in the system tray (bottom-right, near the clock;
+  it may be hidden under the ^ arrow): stats, fill bowls, coat, mood, rename,
+  Start with Windows, and Quit.
+
+The cat hides itself while a full-screen game, video or presentation is running.
+Its needs only change while your PC is awake and Purrgram is running.
+
+Needs Windows 10 or 11.
