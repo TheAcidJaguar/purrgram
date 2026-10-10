@@ -142,11 +142,7 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
         }
         if !hidden {
             if scene == "hide" {
-                ctx.saveGState(); ctx.translateBy(x: world.bowlRect.minX, y: 0)
-                NSGraphicsContext.saveGraphicsState()
-                NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
-                bv.draw(bv.bounds)
-                NSGraphicsContext.restoreGraphicsState(); ctx.restoreGState()
+                if let bowls = bowlsImage(bv) { ctx.draw(bowls, in: CGRect(origin: P(world.bowlRect.minX, 0), size: BowlView.size)) }
             }
             if let img = Painter.image(cat.pose, coat: coats[coat], facing: cat.facing, size: CGSize(width: VW, height: VH),
                                        origin: P(OX, OY), collar: rgb(0xC8323C)) {
@@ -232,18 +228,6 @@ func renderHero(_ path: String) {
                                       collar: collar.map { rgb($0) }) else { return }
         ctx.draw(img, in: CGRect(x: (x - OX).rounded(), y: (y - OY).rounded(), width: VW, height: VH))
     }
-    /// Draw something into its own transparent layer first (the bowl view clears its bounds as it draws).
-    func layer(_ size: CGSize, _ body: (CGContext) -> Void) -> CGImage? {
-        guard let c = CGContext(data: nil, width: Int(size.width * 3), height: Int(size.height * 3), bitsPerComponent: 8, bytesPerRow: 0,
-                                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-        else { return nil }
-        c.interpolationQuality = .none; c.scaleBy(x: 3, y: 3)
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(cgContext: c, flipped: false)
-        body(c)
-        NSGraphicsContext.restoreGraphicsState()
-        return c.makeImage()
-    }
 
     renderPNG(size: CGSize(width: W, height: H), scale: 3, to: path) { ctx in
         // Warm backdrop that matches the app icon, and a soft "floor" along the bottom of the screen.
@@ -286,9 +270,24 @@ func renderHero(_ path: String) {
         let cat = Cat(world: world, state: SaveState(), sound: SoundBox())
         let bv = BowlView(frame: NSRect(origin: .zero, size: BowlView.size))
         bv.cat = cat; bv.shownFood = 0.8; bv.shownWater = 0.9
-        if let bowls = layer(BowlView.size, { _ in bv.draw(bv.bounds) }) {
+        if let bowls = bowlsImage(bv) {
             ctx.draw(bowls, in: CGRect(x: bowlX, y: floorY - PX, width: BowlView.size.width, height: BowlView.size.height))
         }
         drawCat(ctx, coat: "Slate", act: .sit(99), t: 0.2, x: bowlX - 22, y: floorY, facing: 1)   // waiting by the bowls
     }
+}
+
+/// The bowls on a transparent layer of their own: BowlView clears its whole rectangle as it draws, which is
+/// right for its window in the app but would punch a box out of anything it's drawn on top of.
+func bowlsImage(_ bv: BowlView, scale: CGFloat = 3) -> CGImage? {
+    let size = BowlView.size
+    guard let c = CGContext(data: nil, width: Int(size.width * scale), height: Int(size.height * scale), bitsPerComponent: 8, bytesPerRow: 0,
+                            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+    else { return nil }
+    c.interpolationQuality = .none; c.scaleBy(x: scale, y: scale)
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(cgContext: c, flipped: false)
+    bv.draw(bv.bounds)
+    NSGraphicsContext.restoreGraphicsState()
+    return c.makeImage()
 }

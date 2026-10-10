@@ -1,12 +1,16 @@
-# Purrgram 🐾
+# Purrgram
 
-A little pixel-art cat that lives on your Mac desktop. It walks along the bottom of your screen, jumps onto your windows (and rides along when you drag them), naps, grooms, gets the zoomies, hides under windows, and needs you to keep its food and water bowls full.
+Purrgram is a free Mac app that gives you a pixel-art pet cat that lives right on your desktop, alongside your windows while you work.
+
+The cat has a mind of its own. It strolls along the bottom of your screen, hops up onto your open windows (and rides along when you drag them), naps, grooms, stretches, gets the zoomies, and squeezes underneath big windows to hide. Click it to pet it, drag it to pick it up, or toss it a ball of yarn and watch it play.
+
+It also needs looking after, a bit like a Tamagotchi. Keep its food and water bowls full, give it attention, brush its coat and hand out the occasional treat, and it stays happy. Pick from 12 coats, add a collar, and choose its mood. Purrgram lives in your menu bar, lets your clicks pass straight through to your work, is light on battery, and runs entirely on your Mac without going online.
 
 ![Purrgram](hero.png)
 
 | | | |
 |---|---|---|
-| ![Catching a window edge](edge-catch.gif) | ![Scratching a window](scratching.gif) | ![Hide Everything](hide-toggle.gif) |
+| ![Catching a window edge](edge-catch.gif) | ![Scratching a window](scratching.gif) | ![Hide Everything](hide-everything.gif) |
 
 **Download:** grab `Purrgram.dmg` from the [latest release](../../releases/latest).
 Needs macOS 12 or newer. Works on Apple Silicon and Intel Macs.
@@ -32,7 +36,7 @@ shasum -a 256 ~/Downloads/Purrgram.dmg
 
 The result should match the fingerprint on the release page exactly.
 
-## How to guide
+## Controls
 
 - **Click** the cat to pet it (they purr, but don't overdo it)
 - **Double-click** to shoo it out of the way
