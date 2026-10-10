@@ -69,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var pendingSave: DispatchWorkItem?
     var last = CACurrentMediaTime()
     var saveAcc = 0.0, frontAcc = 0.0
+    var bowlsInFront = false
 
     func applicationDidFinishLaunching(_ n: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -234,8 +235,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let o = P((cat.x - OX).rounded() + cat.shake, (cat.y - OY).rounded())
         if catWin.frame.origin != o { catWin.setFrameOrigin(o) }
         if catView.dirty() { catView.needsDisplay = true }
+        let eating: Bool = { if case .eat = cat.act { return true }; return false }()
+        if eating != bowlsInFront { bowlsInFront = eating; restack() }
         frontAcc += dt
-        if frontAcc > 2 { frontAcc = 0; catWin.orderFrontRegardless() }   // stay above the bowls
+        if frontAcc > 2 { frontAcc = 0; restack() }
         for (t, w, v) in [(toy, toyWin, toyView), (treat, treatWin, treatView), (hairball, hairballWin, hairballView)] {
             guard let t, let w, let v else { continue }
             let to = P((t.x - ToyView.size.width / 2).rounded(), (t.y - PX).rounded())
@@ -248,6 +251,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             cv.needsDisplay = true
         }
         updateHits()
+    }
+
+    /// The cat stays above its bowls and toys, except while eating: then the bowls come to the front so the cat's
+    /// head dips into the bowl behind its rim.
+    func restack() {
+        catWin.orderFrontRegardless()
+        if bowlsInFront { bowlWin.orderFrontRegardless() }
     }
 
     /// Our windows only accept clicks right over the cat, a bowl, the yarn or a hairball; everywhere else clicks pass through.
@@ -504,7 +514,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let tv = ToyView(frame: NSRect(origin: .zero, size: ToyView.size))
         tv.toy = t; tv.cat = cat
         w.contentView = tv
-        w.orderFrontRegardless(); catWin.orderFrontRegardless()
+        w.orderFrontRegardless(); restack()
         return (t, w, tv)
     }
 
@@ -535,7 +545,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let cv = CritterView(frame: NSRect(origin: .zero, size: CritterView.size))
         cv.critter = c
         w.contentView = cv
-        w.orderFrontRegardless(); catWin.orderFrontRegardless()
+        w.orderFrontRegardless(); restack()
         critter = c; critterWin = w; critterView = cv; cat.critter = c
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in self?.cat.critterNoticed() }
     }
@@ -548,7 +558,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let v = ToyView(frame: NSRect(origin: .zero, size: ToyView.size))
         v.toy = t; v.cat = cat
         w.contentView = v
-        w.orderFrontRegardless(); catWin.orderFrontRegardless()
+        w.orderFrontRegardless(); restack()
         hairball = t; hairballWin = w; hairballView = v
     }
 
@@ -568,6 +578,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             Store.save(cat.s)
         } else {
             wins.forEach { $0.orderFrontRegardless() }
+            restack()
             last = CACurrentMediaTime()
             nextMouseAt = last + rndD(8 * 60, 20 * 60)
             if !paused { setFPS(30) }

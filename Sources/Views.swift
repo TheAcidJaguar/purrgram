@@ -218,12 +218,13 @@ final class BowlView: NSView {
             let p = b.p.off(0, vy * CGFloat(dt))
             return p.y < (b.water ? 9 : 10) ? nil : (p, vy, b.water)
         }
-        let key = [Int(shownFood * 40), Int(shownWater * 40), shimmerStep(), bits.count]
+        let key = [Int(shownFood * 40), Int(shownWater * 40), shimmerStep(), bits.count, drinking ? Int(time * 13 / .pi) : -1]
         if key != lastKey || !bits.isEmpty { needsDisplay = true; lastKey = key }
     }
 
     var lastKey: [Int] = []
     func shimmerStep() -> Int { Int((sin(time * 1.4) + 1) * 2) }
+    var drinking: Bool { if case .eat(true) = cat.act { return true }; return false }
 
     func foodGrid(_ lv: Double) -> [[Character]] {
         var g = Array(repeating: Array(repeating: Character("."), count: 16), count: 3) + BowlView.dish.map(Array.init)
@@ -252,7 +253,11 @@ final class BowlView: NSView {
         }
         if lv > 0.04 { for c in (lv < 0.5 ? 5...8 : 3...10) { g[2][c] = "q" } }
         if lv > 0.6 { for c in 4...9 { g[1][c] = "q" } }
-        if lv > 0.3 {
+        if drinking && lv > 0.04 {   // little rings spreading out from the tongue, in time with the laps
+            let r = Int(time * 13 / .pi) % 3, top = lv > 0.6 ? 1 : 2
+            for c in [6 - r, 7 + r] where c >= 3 && c <= 10 { g[top][c] = "Q" }
+            if top == 1 { for c in [5 - r, 8 + r] where c >= 3 && c <= 10 { g[2][c] = "Q" } }
+        } else if lv > 0.3 {
             let s = 4 + shimmerStep()
             g[2][s] = "Q"; g[2][s + 1] = "Q"
         }

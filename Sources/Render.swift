@@ -111,6 +111,12 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
         cat.x = 40; cat.act = .sit(0.6)
         cat.queue = [.walk(175 - 39 * cat.cs, 80), .face(1), .claw(1, 175, 4.5), .legStretch, .sit(2)]
         seconds = 9.5
+    case "eat":   // eat at the food bowl, then go drink
+        world.bowlRect = CGRect(x: 150, y: 0, width: BowlView.size.width, height: BowlView.size.height)
+        cat.s.belly = 0.2; cat.s.hydration = 0.2; cat.s.food = 0.9; cat.s.water = 0.9
+        cat.x = world.foodX - 33 * cat.cs; cat.act = .eat(false)
+        cat.queue = [.walk(world.waterX - 33 * cat.cs, 90), .face(1), .eat(true), .sit(2)]
+        seconds = 15
     default:   // hide
         cat.x = 90; cat.act = .walk(150, 60); cat.queue = [.sit(9)]
         seconds = 5.5
@@ -125,13 +131,13 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
     for f in 0..<frames {
         let t = Double(f) / fps
         let hidden = scene == "hide" && t > 1.8 && t < 3.6
-        if !hidden { cat.tick(1 / fps) }
+        if !hidden { cat.tick(1 / fps); bv.tick(1 / fps) }
         guard let ctx = CGContext(data: nil, width: W, height: H, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!,
                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { continue }
         ctx.interpolationQuality = .none
         ctx.scaleBy(x: scale, y: scale)
         ctx.setFillColor(rgb(0xE9E4F2).cgColor); ctx.fill(world.screen)
-        if scene != "hide" {   // a simple app window: body + title bar with traffic lights
+        if scene != "hide" && scene != "eat" {   // a simple app window: body + title bar with traffic lights
             let r = win.rect
             ctx.setFillColor(rgb(0xFFFFFF).cgColor); ctx.fill(r)
             ctx.setFillColor(rgb(0xDADADF).cgColor); ctx.fill(CGRect(x: r.minX, y: r.maxY - 22, width: r.width, height: 22))
@@ -141,13 +147,16 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
             ctx.setStrokeColor(rgb(0xB8B8C0).cgColor); ctx.setLineWidth(1); ctx.stroke(r)
         }
         if !hidden {
-            if scene == "hide" {
-                if let bowls = bowlsImage(bv) { ctx.draw(bowls, in: CGRect(origin: P(world.bowlRect.minX, 0), size: BowlView.size)) }
+            let eating: Bool = { if case .eat = cat.act { return true }; return false }()
+            func bowls() {
+                if let b = bowlsImage(bv) { ctx.draw(b, in: CGRect(origin: P(world.bowlRect.minX, 0), size: BowlView.size)) }
             }
+            if (scene == "hide" || scene == "eat") && !eating { bowls() }
             if let img = Painter.image(cat.pose, coat: coats[coat], facing: cat.facing, size: CGSize(width: VW, height: VH),
                                        origin: P(OX, OY), collar: rgb(0xC8323C)) {
                 ctx.draw(img, in: CGRect(x: (cat.x - OX).rounded() + cat.shake, y: (cat.y - OY).rounded(), width: VW, height: VH))
             }
+            if scene == "eat" && eating { bowls() }   // the head dips in behind the rim
         }
         if scene == "hide" {   // a little caption so the toggle reads in the clip
             let label = hidden ? "Hide Everything  ⌘H" : (t > 3.6 ? "Unhide  ⌘H" : "")
