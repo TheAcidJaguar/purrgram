@@ -5,67 +5,74 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Purrgram: a pixel cat for your desktop</title>
 <meta name="description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta). No account, no internet, no tracking.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://purrgram.netlify.app/">
 <meta property="og:title" content="Purrgram: a pixel cat for your desktop">
 <meta property="og:description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta).">
-<meta property="og:image" content="/hero.png">
+<meta property="og:image" content="https://purrgram.netlify.app/hero.png">
+<meta property="og:image:width" content="2280">
+<meta property="og:image:height" content="696">
+<meta property="og:image:alt" content="Pixel cats walking, loafing and playing on a desktop">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://purrgram.netlify.app/hero.png">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="preload" href="/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  /* Press Start 2P (SIL Open Font License, see /fonts/OFL.txt), served from this site: nothing loads from anyone else. */
+  @font-face {
+    font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("/fonts/press-start-2p-latin.woff2") format("woff2");
+  }
   :root {
-    --bg: #FDF3EE; --bg2: #F7E2D8; --card: #FFFFFF; --text: #3A2A24; --muted: #7A6158;
-    --line: #EBD3C8; --accent: #E0506C; --mac: #1D1D1F; --win: #0078D4; --code: #F4E6DF;
+    --bg: #FDF3EE; --card: #FFFFFF; --text: #3A2A24; --muted: #7A6158;
+    --line: #EBD3C8; --accent: #D9405E; --mac: #1D1D1F; --mac-text: #FFFFFF; --win: #0067C0;
+    --code: #F4E6DF; --stage: #F7E7DF; --chip: #FFFFFF;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1A1416; --bg2: #241B1E; --card: #2A2124; --text: #F3E6DF; --muted: #B9A39A;
-      --line: #3B2F33; --accent: #F2708A; --mac: #F5F5F7; --win: #2B8AE0; --code: #33282C;
+      --bg: #1A1416; --card: #2A2124; --text: #F3E6DF; --muted: #B9A39A;
+      --line: #3B2F33; --accent: #F2708A; --mac: #F5F5F7; --mac-text: #1D1D1F; --win: #2B8AE0;
+      --code: #33282C; --stage: #322729; --chip: #2A2124;
     }
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding-bottom: 120px;   /* room for the cat at the bottom of the window */
   }
   img { max-width: 100%; height: auto; }
-  .pix { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .pix, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+  .pixfont { font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400; }
   header { padding: 56px 0 24px; text-align: center; }
   .logo { width: 72px; height: 72px; border-radius: 16px; }
-  h1 {
-    font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400;
-    font-size: clamp(28px, 6vw, 44px); letter-spacing: 1px; margin: 18px 0 14px;
-  }
+  h1 { font-size: clamp(28px, 6vw, 44px); letter-spacing: 1px; margin: 18px 0 14px; }
   .tag { font-size: clamp(18px, 2.6vw, 21px); color: var(--muted); max-width: 640px; margin: 0 auto; }
-  h2 {
-    font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400;
-    font-size: 17px; line-height: 1.6; margin: 0 0 18px;
-  }
+  h2 { font-size: 17px; line-height: 1.6; margin: 0 0 18px; }
   .hero { margin: 32px auto 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
   .hero img { display: block; width: 100%; }
 
   .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0 8px; }
   .dl {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none;
-    padding: 20px 16px; border-radius: 14px; border: 2px solid transparent; color: #fff;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; text-align: center;
+    padding: 20px 16px; border-radius: 14px; border: 3px solid transparent;
     transition: transform .12s ease, box-shadow .12s ease;
   }
   .dl:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.14); }
   .dl:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-  .dl.mac { background: var(--mac); }
-  .dl.win { background: var(--win); }
-  @media (prefers-color-scheme: dark) { .dl.mac { color: #1D1D1F; } }
-  .dl .big { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 15px; line-height: 1.5; }
+  .dl.mac { background: var(--mac); color: var(--mac-text); }
+  .dl.win { background: var(--win); color: #fff; }
+  .dl .big { font-size: 15px; line-height: 1.5; }
   .dl .small { font-size: 14px; opacity: .85; }
   .dl.yours { border-color: var(--accent); }
-  .dl.yours .badge { display: inline-block; }
   .badge {
     display: none; font-size: 12px; font-weight: 700; background: var(--accent); color: #fff;
     padding: 2px 8px; border-radius: 99px; margin-top: 6px;
   }
+  .dl.yours .badge { display: inline-block; }
   .fine { text-align: center; color: var(--muted); font-size: 14px; margin: 8px 0 0; }
   .fine a { color: inherit; }
 
@@ -77,24 +84,62 @@
   figure { margin: 0; }
   figure img { display: block; width: 100%; border-radius: 10px; border: 1px solid var(--line); }
   figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; text-align: center; }
-  .coats { background: #EDEDED; border-radius: 14px; border: 1px solid var(--line); padding: 8px; }
-  .coats img { display: block; width: 100%; }
+
+  /* coat picker */
+  .picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: center; }
+  .stage {
+    background: var(--stage); border: 1px solid var(--line); border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; padding: 8px 8px 16px;
+  }
+  .stage canvas { width: 100%; max-width: 408px; aspect-ratio: 51 / 36; display: block; margin: 12px 0 4px; }
+  .stage .name { font-size: 13px; margin-top: 4px; }
+  .stage .blurb { color: var(--muted); font-size: 15px; margin-top: 6px; text-align: center; min-height: 1.6em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-size: 15px; color: var(--text); background: var(--chip); cursor: pointer;
+    border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .hint { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
 
   .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .steps ol { margin: 0; padding-left: 20px; }
   .steps li { margin: 6px 0; }
   .steps li::marker { color: var(--accent); font-weight: 700; }
-  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 14px; }
-  kbd { font: inherit; font-weight: 600; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; }
 
-  footer { padding: 48px 0 56px; text-align: center; color: var(--muted); font-size: 14px; }
-  footer a { color: inherit; }
+  .faq details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 0 0 10px; }
+  .faq summary { cursor: pointer; padding: 14px 18px; font-weight: 600; list-style: none; position: relative; padding-right: 44px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; position: absolute; right: 18px; top: 12px; font-size: 20px; color: var(--accent); }
+  .faq details[open] summary::after { content: "–"; }
+  .faq summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 14px; }
+  .faq .a { padding: 0 18px 16px; color: var(--muted); font-size: 15px; }
+  .faq .a p { margin: 0 0 8px; }
+
+  footer { padding: 48px 0 24px; text-align: center; color: var(--muted); font-size: 14px; }
+  .linkish { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+  /* the live cat: drawn at the bottom of the window; clicks only land on the cat's own pixels (see script) */
+  #cat { position: fixed; left: 0; bottom: 0; pointer-events: none; z-index: 50; }
+  .heart { position: fixed; pointer-events: none; z-index: 51; animation: rise 1.5s ease-out forwards; }
+  @keyframes rise {
+    0% { transform: translate(-50%, 0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--sway, 0px)), -48px); opacity: 0; }
+  }
 
   @media (max-width: 720px) {
     header { padding-top: 36px; }
-    .downloads, .grid3, .steps { grid-template-columns: 1fr; }
+    .downloads, .grid3, .steps, .picker { grid-template-columns: 1fr; }
   }
-  @media (prefers-reduced-motion: reduce) { .dl { transition: none; } .dl:hover { transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .dl { transition: none; } .dl:hover { transform: none; }
+    .heart { animation-duration: .01s; }
+  }
 </style>
 </head>
 <body>
@@ -102,27 +147,28 @@
 
   <header>
     <img class="logo" src="/apple-touch-icon.png" alt="" width="72" height="72">
-    <h1>Purrgram</h1>
+    <h1 class="pixfont">Purrgram</h1>
     <p class="tag">A pixel-art pet cat that lives on your desktop, right alongside your windows while you work. Free, for Mac and Windows (beta).</p>
     <div class="hero"><img class="pix" src="/hero.png" alt="Pixel cats on a desktop: one loafing on a window, one walking, one batting a ball of yarn, one sitting by its food and water bowls" width="2280" height="696"></div>
   </header>
 
   <div class="downloads" id="download">
     <a class="dl mac" id="dl-mac" href="/mac">
-      <span class="big">Download for Mac</span>
+      <span class="big pixfont">Download for Mac</span>
       <span class="small">Full version · macOS 12 or newer · Apple Silicon and Intel</span>
       <span class="badge">Your computer</span>
     </a>
     <a class="dl win" id="dl-win" href="/windows">
-      <span class="big">Download for Windows</span>
+      <span class="big pixfont">Download for Windows</span>
       <span class="small">Beta (Lite) · Windows 10 or 11</span>
       <span class="badge">Your computer</span>
     </a>
   </div>
-  <p class="fine">Always the latest version · No account, no internet, no tracking · <a href="#install">How to install</a></p>
+  <p class="fine" id="version">Always the latest version</p>
+  <p class="fine">No account, no internet, no tracking · <a href="#install">How to install</a> · <a href="#faq">Questions</a></p>
 
   <section>
-    <h2>A cat with a mind of its own</h2>
+    <h2 class="pixfont">A cat with a mind of its own</h2>
     <div class="grid3">
       <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="520" loading="lazy"><figcaption>Jumps onto your windows (and rides along when you drag them)</figcaption></figure>
       <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="520" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
@@ -131,22 +177,32 @@
   </section>
 
   <section>
-    <h2>Look after it</h2>
+    <h2 class="pixfont">Look after it</h2>
     <div class="grid3">
       <div class="card"><h3>Pet, shoo, pick up</h3><p>Click to pet (it purrs), double-click to shoo it, drag to pick it up and drop it on a window.</p></div>
       <div class="card"><h3>Keep it happy</h3><p>Like a Tamagotchi: keep the food and water bowls full, give it attention, brush its coat, hand out treats.</p></div>
       <div class="card"><h3>Stays out of your way</h3><p>Clicks pass straight through to your work, it's light on battery, and it pauses when you close the lid.</p></div>
     </div>
+    <p class="hint">Try it here: the cat at the bottom of this page is the real thing. Click it to pet it, double-click to shoo it, or drag it around.</p>
   </section>
 
-  <section>
-    <h2>12 coats to choose from</h2>
-    <div class="coats"><img class="pix" src="/coats.png" alt="Twelve cat coats: Slate, Charcoal, Siamese, Tan Tabby, Orange Tabby, Midnight, Tuxedo, Cream, Maine Coon, British Shorthair, Bengal and Sphynx" width="2310" height="230" loading="lazy"></div>
-    <p class="fine">Slate, Charcoal, Siamese, Tan Tabby, Orange Tabby, Midnight, Tuxedo, Cream, Maine Coon, British Shorthair, Bengal and Sphynx. Add a collar and pick a mood.</p>
+  <section id="coats">
+    <h2 class="pixfont">Pick a coat</h2>
+    <div class="picker">
+      <div class="stage">
+        <canvas id="stage" width="51" height="36" aria-label="The selected cat coat, animated"></canvas>
+        <div class="name pixfont" id="coat-name">Slate</div>
+        <div class="blurb" id="coat-blurb"></div>
+      </div>
+      <div>
+        <div class="chips" id="chips" role="group" aria-label="Cat coats"></div>
+        <p class="hint">There are 12 coats, and you can switch any time. Add a collar in any color and pick a mood: playful, lazy, clingy, skittish or curious. Picking a coat here also changes the cat at the bottom of the page.</p>
+      </div>
+    </div>
   </section>
 
   <section id="install">
-    <h2>How to install</h2>
+    <h2 class="pixfont">How to install</h2>
     <div class="steps">
       <div class="card">
         <h3>Mac</h3>
@@ -163,28 +219,369 @@
         <ol>
           <li>Right-click <code>Purrgram-Windows.zip</code> → <b>Extract All</b>, and keep the folder somewhere like Documents.</li>
           <li>Double-click <b>Purrgram.exe</b>. If Windows says "Windows protected your PC", click <b>More info</b> → <b>Run anyway</b>.</li>
-          <li>Your cat appears on top of the taskbar. Its menu is the cat icon in the system tray, near the clock (it may be under the <kbd>^</kbd> arrow).</li>
+          <li>Your cat appears on top of the taskbar. Its menu is the cat icon in the system tray, near the clock (it may be under the <b>^</b> arrow).</li>
         </ol>
-        <p style="margin-top:10px">The Windows version is a lighter beta: it stays on the taskbar and has no toys or sounds yet.</p>
+        <p style="margin-top:10px">The Windows version is a lighter beta: the cat stays on the taskbar, and there are no toys or sounds yet.</p>
       </div>
     </div>
   </section>
 
-  <section>
-    <h2>Private by design</h2>
-    <div class="card"><p>Purrgram runs entirely on your computer. It has no network code, so it never connects to the internet and sends nothing anywhere, and it doesn't ask for any permissions. Each release lists SHA-256 fingerprints so you can check your download is genuine.</p></div>
+  <section id="faq" class="faq">
+    <h2 class="pixfont">Questions</h2>
+    <details>
+      <summary>Why does my Mac warn me when I first open it? Is it safe?</summary>
+      <div class="a">
+        <p>Purrgram isn't sold through the App Store, and it isn't registered with Apple (that takes a yearly paid developer account), so macOS asks you to confirm once that you trust it. Windows shows a similar "protected your PC" message for the same reason.</p>
+        <p>The app has no network code at all, so it can't send anything anywhere, and it doesn't ask for any permissions.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Will it slow down my computer?</summary>
+      <div class="a">
+        <p>No. On a Mac it averages about 3% of one processor core. It redraws less often while the cat is calm, pauses completely when your screen sleeps or the lid is closed, and saves even more battery in Low Power Mode. On Windows it hides itself during full-screen games, videos and presentations.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Does my cat keep its progress when I update?</summary>
+      <div class="a">
+        <p>Yes. To update, download the new version and replace the old one. Your cat's name, coat and stats are saved separately, so it carries over.</p>
+      </div>
+    </details>
+    <details>
+      <summary>How do I uninstall it?</summary>
+      <div class="a">
+        <p><b>Mac:</b> if you turned on Open at Login, turn it off in the cat's menu first. Then choose Quit from the cat face in the menu bar and drag Purrgram from Applications to the Trash. To also remove your cat's save, delete the folder <code>~/Library/Application Support/DesktopCat</code>.</p>
+        <p><b>Windows:</b> in the tray menu, untick Start with Windows if it's on, then choose Quit and delete the Purrgram folder. Your cat's save is in <code>%APPDATA%\Purrgram</code>.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Does it work with more than one screen?</summary>
+      <div class="a">
+        <p>The cat lives on your main screen (on Windows, along the main screen's taskbar).</p>
+      </div>
+    </details>
+    <details>
+      <summary>Is it really free?</summary>
+      <div class="a">
+        <p>Yes. No ads, no account, no in-app purchases.</p>
+      </div>
+    </details>
   </section>
 
   <footer>
-    Purrgram is free and open source. <a href="https://github.com/TheAcidJaguar/purrgram">Source code</a> · <a href="https://github.com/TheAcidJaguar/purrgram/releases/latest">Release notes and fingerprints</a>
+    <p>Purrgram is free. Made for people who'd like a little company while they work.</p>
+    <p><button class="linkish" id="cat-toggle" type="button">Hide the cat</button></p>
   </footer>
 </div>
+
+<canvas id="cat" width="77" height="64" aria-hidden="true"></canvas>
+
 <script>
+(function () {
+  "use strict";
+  // Frames are the app's own pre-rendered animations (one 77×64 art-pixel frame per step; the feet sit at x 38, 12 up).
+  var FW = 77, FH = 64, OX = 38, OY = 12;
+  var CLIPS = { sit: [10, 1], walk: [20, 1], run: [30, 1], loaf: [10, 1], groom: [12, 1], sleep: [8, 1], petted: [15, 1],
+                carried: [10, 1], airUp: [10, 1], airDown: [10, 1], land: [30, 0], lookUp: [10, 1], yawn: [15, 0], stretch: [15, 0] };
+  var COATS = [
+    ["Slate", "Soft blue-grey: the original Purrgram cat."], ["Charcoal", "Solid smoky grey."],
+    ["Siamese", "Cream with dark seal points and bright blue eyes."], ["Tan Tabby", "Warm tan with gentle stripes."],
+    ["Orange Tabby", "Ginger stripes and a big personality."], ["Midnight", "Black from nose to tail."],
+    ["Tuxedo", "Black with a white chest and white socks."], ["Cream", "Pale cream with faint tabby stripes."],
+    ["Maine Coon", "Big, shaggy and fluffy, with tufted lynx ears."], ["British Shorthair", "Round face, small ears, plush grey coat."],
+    ["Bengal", "Golden with wild leopard spots."], ["Sphynx", "Hairless, with a wedge-shaped head and huge bat ears."]
+  ];
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  var saved = parseInt(store.get("purrgram.coat"), 10);
+  var coat = saved >= 0 && saved < 12 ? saved : Math.floor(Math.random() * 12);
+
+  // MARK: frames
+  var imgs = {};
+  function strip(c, clip, right) {
+    var k = c + "/" + clip + "_" + (right ? "R" : "L");
+    if (!imgs[k]) { var im = new Image(); im.src = "/cats/" + k + ".png"; imgs[k] = im; }
+    return imgs[k];
+  }
+  function ready(im) { return im.complete && im.naturalWidth > 0; }
+  function frameCount(im) { return ready(im) ? Math.max(1, Math.round(im.naturalWidth / FW)) : 1; }
+  function frameAt(im, clip, t) {
+    var n = frameCount(im), f = Math.floor(t * CLIPS[clip][0]);
+    return CLIPS[clip][1] ? ((f % n) + n) % n : clamp(f, 0, n - 1);
+  }
+  function clipLength(clip) { var im = strip(coat, clip, true); return ready(im) ? frameCount(im) / CLIPS[clip][0] : 2; }
+  function preload(c) { for (var k in CLIPS) { strip(c, k, true); strip(c, k, false); } }
+
+  // MARK: version line (written by the build next to this page, so nothing is fetched from anywhere else)
+  fetch("/version.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
+    if (!v || !v.mac) return;
+    var d = v.date ? new Date(v.date + "T12:00:00") : null;
+    var when = d && !isNaN(d) ? " · updated " + d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "";
+    document.getElementById("version").textContent = "Mac " + v.mac + " · Windows " + v.windows + " (beta)" + when;
+  }).catch(function () {});
+
   // Point out the download that matches this computer (the other one stays available).
-  (function () {
-    var ua = navigator.userAgent || "", id = /Windows/i.test(ua) ? "dl-win" : /Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "dl-mac" : null;
-    if (id) document.getElementById(id).classList.add("yours");
+  var ua = navigator.userAgent || "";
+  var mine = /Windows/i.test(ua) ? "dl-win" : (/Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad/i.test(ua) && !(navigator.maxTouchPoints > 1)) ? "dl-mac" : null;
+  if (mine) document.getElementById(mine).classList.add("yours");
+
+  // MARK: coat picker
+  var stage = document.getElementById("stage"), sctx = stage.getContext("2d");
+  var chips = document.getElementById("chips"), stageT = 0, stageClip = "sit";
+  COATS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = c[0];
+    b.addEventListener("click", function () { setCoat(i, true); });
+    chips.appendChild(b);
+  });
+  function setCoat(i, fromPicker) {
+    coat = i; store.set("purrgram.coat", String(i)); preload(i);
+    Array.prototype.forEach.call(chips.children, function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    document.getElementById("coat-name").textContent = COATS[i][0];
+    document.getElementById("coat-blurb").textContent = COATS[i][1];
+    if (fromPicker) { stageClip = reduce ? "sit" : "stretch"; stageT = 0; }
+    lastKey = ""; stageKey = "";
+  }
+  var stageKey = "";
+  function drawStage(dt) {
+    stageT += dt;
+    if (stageClip !== "sit" && stageT >= clipLength(stageClip)) { stageClip = "sit"; stageT = 0; }
+    var im = strip(coat, stageClip, true);
+    if (!ready(im)) return;
+    var f = reduce ? 0 : frameAt(im, stageClip, stageT), key = coat + stageClip + f;
+    if (key === stageKey) return;
+    stageKey = key;
+    // Just the part of the frame the cat uses when sitting and stretching (every coat fits), so it shows up big.
+    sctx.clearRect(0, 0, 51, 36);
+    sctx.drawImage(im, f * FW + 13, 22, 51, 36, 0, 0, 51, 36);
+  }
+
+  // MARK: the live cat
+  var cv = document.getElementById("cat"), ctx = cv.getContext("2d");
+  var S = 3, hidden = store.get("purrgram.cat.hidden") === "1";
+  var cat = { x: 0, y: 0, vx: 0, vy: 0, facing: 1, act: null, t: 0, time: 0, queue: [] };
+  var mouse = { x: -1, at: -99 }, lastKey = "";
+
+  function width() { return document.documentElement.clientWidth || innerWidth; }
+  function resize() {
+    S = width() < 600 ? 2 : 3;
+    cv.style.width = FW * S + "px"; cv.style.height = FH * S + "px";
+    cat.x = clamp(cat.x, 40, width() - 40);
+    lastKey = "";
+  }
+
+  function A(k, o) { var a = o || {}; a.k = k; return a; }
+  function begin(a) {
+    cat.act = a; cat.t = 0;
+    if (a.k === "walk") { a.x = clamp(a.x, 40, width() - 40); if (Math.abs(a.x - cat.x) > 1) cat.facing = a.x > cat.x ? 1 : -1; }
+    if (a.k === "face") cat.facing = a.dir;
+    if (a.k === "stretch" || a.k === "yawn") a.d = clipLength(a.k);
+    if (a.k === "land") a.d = 0.22;
+  }
+  function next() { if (!cat.queue.length) decide(); begin(cat.queue.shift()); }
+  function interrupt(list) { cat.queue = list.slice(1); begin(list[0]); }
+
+  function decide() {
+    var W = width(), q;
+    if (reduce) { cat.queue = [A("sit", { d: rnd(20, 40) }), A("loaf", { d: rnd(20, 40) })]; return; }
+    var opts = [
+      [30, function () { var tx = rnd(40, W - 40); if (Math.abs(tx - cat.x) < 80) tx = clamp(cat.x + (tx > cat.x ? 160 : -160), 40, W - 40);
+                         return [A("walk", { x: tx }), A("sit", { d: rnd(2, 5) })]; }],
+      [16, function () { return [A("sit", { d: rnd(3, 8) })]; }],
+      [12, function () { return [A("groom", { d: rnd(5, 9) })]; }],
+      [12, function () { return [A("loaf", { d: rnd(8, 20) })]; }],
+      [6, function () { return [A("loaf", { d: rnd(2, 4) }), A("sleep", { d: rnd(20, 45) }), A("yawn"), A("stretch")]; }],
+      [6, function () { return [A("stretch"), A("sit", { d: 2 })]; }],
+      [3, function () { return [A("yawn"), A("sit", { d: 2 })]; }],
+      [3, function () { var p = [A("sit", { d: 0.4 })]; for (var i = 0; i < 3; i++) p.push(A("walk", { x: rnd(40, W - 40), run: true })); p.push(A("sit", { d: 2 })); return p; }]
+    ];
+    if (mouse.x >= 0 && cat.time - mouse.at < 4) opts.push([10, attention]);
+    var total = opts.reduce(function (s, o) { return s + o[0]; }, 0), pick = rnd(0, total);
+    for (var i = 0; i < opts.length; i++) { if (pick < opts[i][0]) { q = opts[i][1](); break; } pick -= opts[i][0]; }
+    cat.queue = q || [A("sit", { d: 3 })];
+  }
+  function attention() {   // trot over to the cursor and look up
+    var tx = clamp(mouse.x + (mouse.x > cat.x ? -60 : 60), 40, width() - 40);
+    return [A("walk", { x: tx }), A("face", { dir: mouse.x > tx ? 1 : -1 }), A("lookUp", { d: rnd(3, 5) }), A("sit", { d: 2 })];
+  }
+
+  function clipFor(a) {
+    switch (a.k) {
+      case "walk": return a.run ? "run" : "walk";
+      case "air": return cat.vy > 0 ? "airUp" : "airDown";
+      case "face": return "sit";
+      default: return a.k;
+    }
+  }
+
+  function step(dt) {
+    var a = cat.act; cat.time += dt; cat.t += dt;
+    switch (a.k) {
+      case "walk":
+        // Speeds match the ones the walk and run cycles were drawn at, so the paws don't slide.
+        var sp = (a.run ? 99.7 : 24.9) * S, d = a.x - cat.x;
+        if (Math.abs(d) <= sp * dt) { cat.x = a.x; next(); } else { cat.x += Math.sign(d) * sp * dt; cat.facing = Math.sign(d); }
+        break;
+      case "air":
+        cat.vy -= 500 * S * dt; cat.x += cat.vx * dt; cat.y += cat.vy * dt;
+        if (cat.x < 40) { cat.x = 40; cat.vx = Math.abs(cat.vx) * 0.3; }
+        if (cat.x > width() - 40) { cat.x = width() - 40; cat.vx = -Math.abs(cat.vx) * 0.3; }
+        if (Math.abs(cat.vx) > 5) cat.facing = cat.vx > 0 ? 1 : -1;
+        if (cat.vy <= 0 && cat.y <= 0) { cat.y = 0; cat.vx = cat.vy = 0; cat.queue.unshift(A("land")); next(); }
+        break;
+      case "carried": break;
+      case "face": next(); break;
+      case "petted":
+        if (Math.floor(cat.t / 0.7) !== Math.floor((cat.t - dt) / 0.7)) heart();
+        if (cat.t >= a.d) next();
+        break;
+      default:
+        if (cat.t >= a.d) next();
+    }
+    if ((a.k === "sit" || a.k === "lookUp") && cat.time - mouse.at < 1.2 && Math.abs(mouse.x - cat.x) > 10 && Math.abs(mouse.x - cat.x) < 450)
+      cat.facing = mouse.x > cat.x ? 1 : -1;   // cats watch the cursor
+  }
+
+  function currentFrame() {
+    var clip = clipFor(cat.act), im = strip(coat, clip, cat.facing > 0);
+    var t = cat.act.k === "sit" || cat.act.k === "loaf" || cat.act.k === "sleep" || cat.act.k === "carried" ? cat.time : cat.t;
+    return { im: im, clip: clip, f: ready(im) ? frameAt(im, clip, t) : 0 };
+  }
+  function draw() {
+    var fr = currentFrame();
+    cv.style.transform = "translate(" + Math.round(cat.x - OX * S) + "px," + Math.round(-(cat.y - OY * S)) + "px)";
+    if (!ready(fr.im)) return;
+    var key = coat + fr.clip + fr.f + (cat.facing > 0);
+    if (key === lastKey) return;
+    lastKey = key;
+    ctx.clearRect(0, 0, FW, FH);
+    ctx.drawImage(fr.im, fr.f * FW, 0, FW, FH, 0, 0, FW, FH);
+  }
+
+  // Hearts: a tiny outlined pixel heart, drawn once.
+  var heartURL = (function () {
+    var c = document.createElement("canvas");
+    var fill = ["##.##", "#####", ".###.", "..#.."], W = 7, H = 6;
+    c.width = W; c.height = H; var g = c.getContext("2d");
+    function on(x, y) { return y >= 0 && y < 4 && x >= 0 && x < 5 && fill[y][x] === "#"; }
+    for (var y = -1; y <= 4; y++) for (var x = -1; x <= 5; x++) {
+      var col = on(x, y) ? (x === 0 && y === 0 ? "#FFB3C9" : "#FF5C8A") : (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) ? "#5A1A2E" : null;
+      if (col) { g.fillStyle = col; g.fillRect(x + 1, y + 1, 1, 1); }
+    }
+    return c.toDataURL();
   })();
+  function heart() {
+    if (hidden) return;
+    var h = document.createElement("img");
+    h.src = heartURL; h.className = "heart pix"; h.alt = "";
+    h.style.width = 7 * S + "px";
+    h.style.left = Math.round(cat.x + cat.facing * 9 * S + rnd(-3, 3) * S) + "px";
+    h.style.bottom = Math.round(cat.y + 18 * S + rnd(0, 2) * S) + "px";
+    h.style.setProperty("--sway", Math.round(rnd(-10, 10)) + "px");
+    document.body.appendChild(h);
+    setTimeout(function () { h.remove(); }, 1600);
+  }
+
+  // MARK: petting, shooing, carrying. The canvas ignores the mouse; this checks whether a press lands on the
+  // cat's own (non-transparent) pixels, so everything around the cat stays clickable.
+  var probe = document.createElement("canvas"); probe.width = FW; probe.height = FH;
+  var pctx = probe.getContext("2d", { willReadFrequently: true });
+  function onCat(cx, cy) {
+    if (hidden || !cat.act) return false;
+    var r = cv.getBoundingClientRect(), ax = Math.floor((cx - r.left) / S), ay = Math.floor((cy - r.top) / S);
+    if (ax < 0 || ay < 0 || ax >= FW || ay >= FH) return false;
+    var fr = currentFrame(); if (!ready(fr.im)) return false;
+    pctx.clearRect(0, 0, FW, FH); pctx.drawImage(fr.im, fr.f * FW, 0, FW, FH, 0, 0, FW, FH);
+    try { return pctx.getImageData(ax, ay, 1, 1).data[3] > 160; } catch (e) { return false; }
+  }
+  var press = null, lastTap = -9, petTimer = 0, petTimes = [];
+  document.addEventListener("pointerdown", function (e) {
+    swallowClick = false;
+    if (e.button !== 0 || !onCat(e.clientX, e.clientY)) return;
+    e.preventDefault(); e.stopPropagation(); swallowClick = true;
+    press = { x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), vx: 0, vy: 0, drag: false };
+  }, true);
+  window.addEventListener("pointermove", function (e) {
+    if (e.pointerType === "mouse") { if (Math.abs(e.clientX - mouse.x) > 2) { mouse.x = e.clientX; mouse.at = cat.time; } }
+    if (!press) { document.body.style.cursor = e.pointerType === "mouse" && onCat(e.clientX, e.clientY) ? "pointer" : ""; return; }
+    if (!press.drag && Math.abs(e.clientX - press.x0) + Math.abs(e.clientY - press.y0) > 6) {
+      press.drag = true; clearTimeout(petTimer); cat.queue = []; begin(A("carried")); document.body.style.cursor = "grabbing";
+    }
+    if (!press.drag) return;
+    var now = performance.now(), dt = Math.max(1, now - press.lt) / 1000, dx = e.clientX - press.lx, dy = e.clientY - press.ly;
+    press.vx = press.vx * 0.5 + (dx / dt) * 0.5; press.vy = press.vy * 0.5 + (-dy / dt) * 0.5;
+    cat.x = clamp(cat.x + dx, 20, width() - 20); cat.y = Math.max(0, cat.y - dy);
+    press.lx = e.clientX; press.ly = e.clientY; press.lt = now;
+  });
+  function release() {
+    if (!press) return;
+    var p = press; press = null; document.body.style.cursor = "";
+    if (p.drag) {   // let go: toss it, then it lands, sits and has a wash
+      cat.queue = [A("sit", { d: 1 }), A("groom", { d: rnd(2, 4) })];
+      cat.vx = clamp(p.vx * 0.5, -900, 900); cat.vy = clamp(p.vy * 0.4, -200, 900);
+      begin(A("air")); return;
+    }
+    var now = performance.now();
+    if (now - lastTap < 320) { clearTimeout(petTimer); lastTap = -9; shoo(); return; }
+    lastTap = now;
+    petTimer = setTimeout(pet, 260);
+  }
+  // A press on the cat must not also click whatever link or button is underneath it.
+  var swallowClick = false;
+  document.addEventListener("click", function (e) {
+    if (swallowClick) { swallowClick = false; e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  window.addEventListener("pointerup", release);
+  window.addEventListener("pointercancel", release);
+  document.addEventListener("touchmove", function (e) { if (press) e.preventDefault(); }, { passive: false });
+
+  function pet() {
+    if (cat.act.k === "air" || cat.act.k === "carried") return;
+    petTimes = petTimes.filter(function (t) { return cat.time - t < 10; }); petTimes.push(cat.time);
+    if (petTimes.length >= 8) { petTimes = []; shoo(); return; }   // overstimulated: off they go
+    heart();
+    if (cat.act.k === "sleep") return;
+    if (cat.act.k === "petted") { cat.t = Math.min(cat.t, 1); return; }
+    interrupt([A("petted", { d: 3.2 }), A("sit", { d: 2 })]);
+  }
+  function shoo() {
+    if (cat.act.k === "air" || cat.act.k === "carried") return;
+    var dir = cat.x < width() / 2 ? 1 : -1;
+    cat.vx = dir * rnd(240, 300) / 3 * S; cat.vy = 560 / 3 * S;
+    cat.queue = [A("face", { dir: -dir }), A("sit", { d: 2 }), A("groom", { d: 3 })];
+    begin(A("air"));
+  }
+
+  // MARK: hide / show
+  var toggle = document.getElementById("cat-toggle");
+  function applyHidden() {
+    cv.style.display = hidden ? "none" : "";
+    toggle.textContent = hidden ? "Bring the cat back" : "Hide the cat";
+    store.set("purrgram.cat.hidden", hidden ? "1" : "0");
+  }
+  toggle.addEventListener("click", function () { hidden = !hidden; applyHidden(); lastKey = ""; });
+
+  // MARK: go
+  setCoat(coat, false);
+  resize(); cat.x = clamp(width() * 0.78, 40, width() - 40); cat.facing = -1;
+  begin(A("sit", { d: 2 }));
+  applyHidden();
+  window.addEventListener("resize", resize);
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.1, Math.max(0, (now - last) / 1000)); last = now;
+    if (!hidden) { step(dt); draw(); }
+    drawStage(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>

@@ -94,5 +94,10 @@ codesign --force -s - "$DMG"
 # The release's SHA256.txt also gets the Windows zip's line (see windows/build.sh).
 ( cd build && shasum -a 256 "$FILE.dmg" > SHA256.txt )
 
+# The download page shows the current versions (site/version.json; commit it with the release).
+MACV=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")
+WINV=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' windows/Purrgram.csproj | sed 's/\.0$//')
+printf '{"mac": "%s", "windows": "%s", "date": "%s"}\n' "$MACV" "$WINV" "$(date +%Y-%m-%d)" > site/version.json
+
 echo "✓ Done: $APP and $DMG"
 echo "  Fingerprints (build/SHA256.txt):"; sed 's/^/    /' build/SHA256.txt
