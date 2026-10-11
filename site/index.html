@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#5E2129">
 <title>Purrgram: a pixel cat for your desktop</title>
 <meta name="description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta). No account, no internet, no tracking.">
 <meta property="og:type" content="website">
@@ -17,112 +18,111 @@
 <meta name="twitter:image" content="https://purrgram.netlify.app/hero.png">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preload" href="/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/pixelify-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  /* Press Start 2P (SIL Open Font License, see /fonts/OFL.txt), served from this site: nothing loads from anyone else. */
-  @font-face {
-    font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap;
-    src: url("/fonts/press-start-2p-latin.woff2") format("woff2");
-  }
+  /* Two fonts, both served from this site (SIL Open Font License, see /fonts): Pixelify Sans for headings, Nunito for text. */
+  @font-face { font-family: "Pixelify Sans"; font-weight: 400 700; font-display: swap; src: url("/fonts/pixelify-sans-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Nunito"; font-weight: 400 800; font-display: swap; src: url("/fonts/nunito-latin.woff2") format("woff2"); }
+
   :root {
-    --bg: #FDF3EE; --card: #FFFFFF; --text: #3A2A24; --muted: #7A6158;
-    --line: #EBD3C8; --accent: #D9405E; --mac: #1D1D1F; --mac-text: #FFFFFF; --win: #0067C0;
-    --code: #F4E6DF; --stage: #F7E7DF; --chip: #FFFFFF;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1A1416; --card: #2A2124; --text: #F3E6DF; --muted: #B9A39A;
-      --line: #3B2F33; --accent: #F2708A; --mac: #F5F5F7; --mac-text: #1D1D1F; --win: #2B8AE0;
-      --code: #33282C; --stage: #322729; --chip: #2A2124;
-    }
+    --maroon: #5E2129;      /* main color */
+    --maroon-dk: #4A1920;   /* section bands */
+    --white: #FFFFFF;       /* second color */
+    --soft: #F3D9D6;        /* text on maroon that isn't a heading */
+    --ink: #3D1419;         /* text on white */
+    --ink-soft: #7A4B50;
+    --line: rgba(255, 255, 255, .22);
+    --head: "Pixelify Sans", ui-monospace, monospace;
+    --body: "Nunito", -apple-system, "Segoe UI", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    padding-bottom: 120px;   /* room for the cat at the bottom of the window */
-  }
+  body { margin: 0; background: var(--maroon); color: var(--white); font: 18px/1.65 var(--body); padding-bottom: 130px; }
   img { max-width: 100%; height: auto; }
   .pix, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-  .pixfont { font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400; }
-  header { padding: 56px 0 24px; text-align: center; }
-  .logo { width: 72px; height: 72px; border-radius: 16px; }
-  h1 { font-size: clamp(28px, 6vw, 44px); letter-spacing: 1px; margin: 18px 0 14px; }
-  .tag { font-size: clamp(18px, 2.6vw, 21px); color: var(--muted); max-width: 640px; margin: 0 auto; }
-  h2 { font-size: 17px; line-height: 1.6; margin: 0 0 18px; }
-  .hero { margin: 32px auto 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+  h1, h2, h3, .head { font-family: var(--head); font-weight: 700; letter-spacing: .5px; line-height: 1.1; }
+  h1 { font-size: clamp(56px, 11vw, 104px); margin: 14px 0 10px; }
+  h2 { font-size: clamp(36px, 6vw, 52px); margin: 0 0 28px; text-align: center; }
+  h3 { font-size: 26px; margin: 0 0 8px; }
+  p { margin: 0; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
+
+  /* top */
+  header.wrap { text-align: center; padding-top: 64px; padding-bottom: 8px; }
+  .logo { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  .tag { font-size: clamp(19px, 2.4vw, 23px); color: var(--soft); max-width: 720px; text-wrap: balance; margin: 0 auto; }
+  .hero { margin: 36px auto 0; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px rgba(0,0,0,.3); }
   .hero img { display: block; width: 100%; }
 
-  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0 8px; }
+  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 36px 0 14px; }
   .dl {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; text-align: center;
-    padding: 20px 16px; border-radius: 14px; border: 3px solid transparent;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; text-decoration: none;
+    background: var(--white); color: var(--ink); border-radius: 16px; padding: 22px 16px; border: 3px solid var(--white);
     transition: transform .12s ease, box-shadow .12s ease;
   }
-  .dl:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.14); }
-  .dl:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-  .dl.mac { background: var(--mac); color: var(--mac-text); }
-  .dl.win { background: var(--win); color: #fff; }
-  .dl .big { font-size: 15px; line-height: 1.5; }
-  .dl .small { font-size: 14px; opacity: .85; }
-  .dl.yours { border-color: var(--accent); }
-  .badge {
-    display: none; font-size: 12px; font-weight: 700; background: var(--accent); color: #fff;
-    padding: 2px 8px; border-radius: 99px; margin-top: 6px;
-  }
+  .dl:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.25); }
+  .dl .big { font-family: var(--head); font-weight: 700; font-size: 30px; line-height: 1.2; }
+  .dl .small { font-size: 15px; color: var(--ink-soft); }
+  .dl .badge { display: none; margin-top: 8px; font-size: 13px; font-weight: 800; color: var(--white); background: var(--maroon); border-radius: 99px; padding: 2px 10px; }
   .dl.yours .badge { display: inline-block; }
-  .fine { text-align: center; color: var(--muted); font-size: 14px; margin: 8px 0 0; }
-  .fine a { color: inherit; }
+  .meta { text-align: center; color: var(--soft); font-size: 15px; }
+  .meta a { color: var(--white); }
 
-  section { padding: 44px 0 4px; }
-  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-  .card h3 { margin: 0 0 6px; font-size: 17px; }
-  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  /* sections alternate between the main maroon and a slightly darker band */
+  section { padding: 72px 0; }
+  section.band { background: var(--maroon-dk); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: var(--white); color: var(--ink); border-radius: 16px; padding: 22px; }
+  .card p, .card li { color: var(--ink-soft); }
+  .card h3 { color: var(--ink); }
   figure { margin: 0; }
-  figure img { display: block; width: 100%; border-radius: 10px; border: 1px solid var(--line); }
-  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; text-align: center; }
+  figure img { display: block; width: 100%; border-radius: 14px; }
+  figcaption { color: var(--soft); font-size: 16px; margin-top: 10px; text-align: center; }
+  .note { text-align: center; color: var(--soft); margin-top: 26px; }
 
   /* coat picker */
-  .picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: center; }
-  .stage {
-    background: var(--stage); border: 1px solid var(--line); border-radius: 14px;
-    display: flex; flex-direction: column; align-items: center; padding: 8px 8px 16px;
-  }
-  .stage canvas { width: 100%; max-width: 408px; aspect-ratio: 51 / 36; display: block; margin: 12px 0 4px; }
-  .stage .name { font-size: 13px; margin-top: 4px; }
-  .stage .blurb { color: var(--muted); font-size: 15px; margin-top: 6px; text-align: center; min-height: 1.6em; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+  .stage { background: var(--white); border-radius: 18px; padding: 10px 16px 20px; text-align: center; }
+  .stage canvas { width: 100%; max-width: 408px; aspect-ratio: 51 / 36; display: block; margin: 12px auto 4px; }
+  .stage .head { color: var(--ink); font-size: 30px; }
+  .stage .blurb { color: var(--ink-soft); margin-top: 4px; min-height: 1.65em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
   .chip {
-    font: inherit; font-size: 15px; color: var(--text); background: var(--chip); cursor: pointer;
-    border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px;
+    font: 700 16px var(--body); color: var(--white); background: transparent; cursor: pointer;
+    border: 2px solid var(--line); border-radius: 99px; padding: 7px 16px;
   }
-  .chip:hover { border-color: var(--accent); }
-  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-  .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .hint { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
+  .chip:hover { border-color: var(--white); }
+  .chip[aria-pressed="true"] { background: var(--white); border-color: var(--white); color: var(--maroon); }
+  .picker .note { text-align: left; margin-top: 18px; }
 
-  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .steps ol { margin: 0; padding-left: 20px; }
-  .steps li { margin: 6px 0; }
-  .steps li::marker { color: var(--accent); font-weight: 700; }
-  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; }
+  /* install + FAQ */
+  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .steps ol { margin: 0; padding-left: 22px; }
+  .steps li { margin: 8px 0; }
+  .steps li::marker { color: var(--maroon); font-weight: 800; }
+  .steps b { color: var(--ink); }
+  .steps .after { margin-top: 12px; font-size: 16px; }
+  code { background: #F5E6E4; color: var(--ink); padding: 1px 6px; border-radius: 6px; font-size: 15px; overflow-wrap: anywhere; }
 
-  .faq details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 0 0 10px; }
-  .faq summary { cursor: pointer; padding: 14px 18px; font-weight: 600; list-style: none; position: relative; padding-right: 44px; }
+  .faq { max-width: 760px; margin: 0 auto; }
+  .faq details { background: var(--white); color: var(--ink); border-radius: 14px; margin: 0 0 12px; }
+  .faq summary { cursor: pointer; padding: 16px 52px 16px 20px; font-weight: 800; list-style: none; position: relative; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; position: absolute; right: 18px; top: 12px; font-size: 20px; color: var(--accent); }
+  .faq summary::after { content: "+"; position: absolute; right: 20px; top: 9px; font: 700 30px var(--head); color: var(--maroon); }
   .faq details[open] summary::after { content: "–"; }
-  .faq summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 14px; }
-  .faq .a { padding: 0 18px 16px; color: var(--muted); font-size: 15px; }
-  .faq .a p { margin: 0 0 8px; }
+  .faq summary:focus-visible { outline-color: var(--white); border-radius: 14px; }
+  .faq .a { padding: 0 20px 18px; color: var(--ink-soft); }
+  .faq .a p + p { margin-top: 8px; }
+  .faq b { color: var(--ink); }
 
-  footer { padding: 48px 0 24px; text-align: center; color: var(--muted); font-size: 14px; }
-  .linkish { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  footer.wrap { text-align: center; color: var(--soft); padding-top: 64px; padding-bottom: 24px; font-size: 16px; }
+  footer .head { color: var(--white); font-size: 34px; margin-bottom: 6px; }
+  .linkish { font: inherit; color: var(--white); background: none; border: 0; padding: 0; margin-top: 10px; text-decoration: underline; cursor: pointer; }
 
-  /* the live cat: drawn at the bottom of the window; clicks only land on the cat's own pixels (see script) */
+  /* the live cat at the bottom of the window: clicks only land on the cat's own pixels (see script) */
   #cat { position: fixed; left: 0; bottom: 0; pointer-events: none; z-index: 50; }
   .heart { position: fixed; pointer-events: none; z-index: 51; animation: rise 1.5s ease-out forwards; }
   @keyframes rise {
@@ -131,9 +131,11 @@
     100% { transform: translate(calc(-50% + var(--sway, 0px)), -48px); opacity: 0; }
   }
 
-  @media (max-width: 720px) {
-    header { padding-top: 36px; }
+  @media (max-width: 760px) {
+    header.wrap { padding-top: 40px; }
+    section { padding: 52px 0; }
     .downloads, .grid3, .steps, .picker { grid-template-columns: 1fr; }
+    .dl .big { font-size: 26px; }
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -143,136 +145,138 @@
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <img class="logo" src="/apple-touch-icon.png" alt="" width="72" height="72">
-    <h1 class="pixfont">Purrgram</h1>
-    <p class="tag">A pixel-art pet cat that lives on your desktop, right alongside your windows while you work. Free, for Mac and Windows (beta).</p>
-    <div class="hero"><img class="pix" src="/hero.png" alt="Pixel cats on a desktop: one loafing on a window, one walking, one batting a ball of yarn, one sitting by its food and water bowls" width="2280" height="696"></div>
-  </header>
+<header class="wrap">
+  <img class="logo" src="/apple-touch-icon.png" alt="" width="84" height="84">
+  <h1>Purrgram</h1>
+  <p class="tag">A pixel-art pet cat that lives on your desktop, right alongside your windows while you work. Free, for Mac and Windows (beta).</p>
+  <div class="hero"><img class="pix" src="/hero.png" alt="Pixel cats on a desktop: one loafing on a window, one walking, one batting a ball of yarn, one sitting by its food and water bowls" width="2280" height="696"></div>
 
   <div class="downloads" id="download">
-    <a class="dl mac" id="dl-mac" href="/mac">
-      <span class="big pixfont">Download for Mac</span>
+    <a class="dl" id="dl-mac" href="/mac">
+      <span class="big">Download for Mac</span>
       <span class="small">Full version · macOS 12 or newer · Apple Silicon and Intel</span>
       <span class="badge">Your computer</span>
     </a>
-    <a class="dl win" id="dl-win" href="/windows">
-      <span class="big pixfont">Download for Windows</span>
+    <a class="dl" id="dl-win" href="/windows">
+      <span class="big">Download for Windows</span>
       <span class="small">Beta (Lite) · Windows 10 or 11</span>
       <span class="badge">Your computer</span>
     </a>
   </div>
-  <p class="fine" id="version">Always the latest version</p>
-  <p class="fine">No account, no internet, no tracking · <a href="#install">How to install</a> · <a href="#faq">Questions</a></p>
+  <p class="meta"><span id="version">Always the latest version</span><br>Free · No account · No internet · No tracking · <a href="#install">How to install</a></p>
+</header>
 
-  <section>
-    <h2 class="pixfont">A cat with a mind of its own</h2>
+<section class="band">
+  <div class="wrap">
+    <h2>A cat with a mind of its own</h2>
     <div class="grid3">
-      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="520" loading="lazy"><figcaption>Jumps onto your windows (and rides along when you drag them)</figcaption></figure>
+      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="520" loading="lazy"><figcaption>Jumps onto your windows and rides along when you drag them</figcaption></figure>
       <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="520" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
-      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="520" loading="lazy"><figcaption>Hide everything in one click when you need to focus</figcaption></figure>
+      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="520" loading="lazy"><figcaption>Hides in one click when you need to focus</figcaption></figure>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2 class="pixfont">Look after it</h2>
+<section>
+  <div class="wrap">
+    <h2>Look after it</h2>
     <div class="grid3">
-      <div class="card"><h3>Pet, shoo, pick up</h3><p>Click to pet (it purrs), double-click to shoo it, drag to pick it up and drop it on a window.</p></div>
-      <div class="card"><h3>Keep it happy</h3><p>Like a Tamagotchi: keep the food and water bowls full, give it attention, brush its coat, hand out treats.</p></div>
+      <div class="card"><h3>Interact</h3><p>Click to pet it and it purrs. Double-click to shoo it. Drag to pick it up and drop it on a window.</p></div>
+      <div class="card"><h3>Keep it happy</h3><p>Like a Tamagotchi: keep the food and water bowls full, give it attention, brush its coat and hand out treats.</p></div>
       <div class="card"><h3>Stays out of your way</h3><p>Clicks pass straight through to your work, it's light on battery, and it pauses when you close the lid.</p></div>
     </div>
-    <p class="hint">Try it here: the cat at the bottom of this page is the real thing. Click it to pet it, double-click to shoo it, or drag it around.</p>
-  </section>
+    <p class="note">Try it now: the cat at the bottom of this page is the real thing.</p>
+  </div>
+</section>
 
-  <section id="coats">
-    <h2 class="pixfont">Pick a coat</h2>
+<section class="band" id="coats">
+  <div class="wrap">
+    <h2>Pick a coat</h2>
     <div class="picker">
       <div class="stage">
         <canvas id="stage" width="51" height="36" aria-label="The selected cat coat, animated"></canvas>
-        <div class="name pixfont" id="coat-name">Slate</div>
+        <div class="head" id="coat-name">Slate</div>
         <div class="blurb" id="coat-blurb"></div>
       </div>
       <div>
         <div class="chips" id="chips" role="group" aria-label="Cat coats"></div>
-        <p class="hint">There are 12 coats, and you can switch any time. Add a collar in any color and pick a mood: playful, lazy, clingy, skittish or curious. Picking a coat here also changes the cat at the bottom of the page.</p>
+        <p class="note">12 coats, a collar in any color, and five moods: playful, lazy, clingy, skittish or curious. Picking a coat here changes the cat at the bottom of the page too.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="install">
-    <h2 class="pixfont">How to install</h2>
+<section id="install">
+  <div class="wrap">
+    <h2>How to install</h2>
     <div class="steps">
       <div class="card">
         <h3>Mac</h3>
         <ol>
           <li>Open <code>Purrgram.dmg</code> and drag <b>Purrgram</b> onto <b>Applications</b>.</li>
-          <li>Open Purrgram from Applications. macOS says it couldn't verify it (it's not from the App Store). Click <b>Done</b>.</li>
+          <li>Open Purrgram from Applications. macOS says it couldn't verify it, because it's not from the App Store. Click <b>Done</b>.</li>
           <li>Go to <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>.</li>
           <li>Name your cat!</li>
         </ol>
-        <p style="margin-top:10px">You only do steps 2–3 once.</p>
+        <p class="after">You only do steps 2 and 3 once.</p>
       </div>
       <div class="card">
         <h3>Windows (beta)</h3>
         <ol>
           <li>Right-click <code>Purrgram-Windows.zip</code> → <b>Extract All</b>, and keep the folder somewhere like Documents.</li>
-          <li>Double-click <b>Purrgram.exe</b>. If Windows says "Windows protected your PC", click <b>More info</b> → <b>Run anyway</b>.</li>
-          <li>Your cat appears on top of the taskbar. Its menu is the cat icon in the system tray, near the clock (it may be under the <b>^</b> arrow).</li>
+          <li>Double-click <b>Purrgram.exe</b>. If Windows says it protected your PC, click <b>More info</b> → <b>Run anyway</b>.</li>
+          <li>Your cat appears on the taskbar. Its menu is the cat icon near the clock (it may be under the <b>^</b> arrow).</li>
         </ol>
-        <p style="margin-top:10px">The Windows version is a lighter beta: the cat stays on the taskbar, and there are no toys or sounds yet.</p>
+        <p class="after">The Windows beta keeps the cat on the taskbar, with no toys or sounds yet.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="faq" class="faq">
-    <h2 class="pixfont">Questions</h2>
-    <details>
-      <summary>Why does my Mac warn me when I first open it? Is it safe?</summary>
-      <div class="a">
-        <p>Purrgram isn't sold through the App Store, and it isn't registered with Apple (that takes a yearly paid developer account), so macOS asks you to confirm once that you trust it. Windows shows a similar "protected your PC" message for the same reason.</p>
-        <p>The app has no network code at all, so it can't send anything anywhere, and it doesn't ask for any permissions.</p>
-      </div>
-    </details>
-    <details>
-      <summary>Will it slow down my computer?</summary>
-      <div class="a">
-        <p>No. On a Mac it averages about 3% of one processor core. It redraws less often while the cat is calm, pauses completely when your screen sleeps or the lid is closed, and saves even more battery in Low Power Mode. On Windows it hides itself during full-screen games, videos and presentations.</p>
-      </div>
-    </details>
-    <details>
-      <summary>Does my cat keep its progress when I update?</summary>
-      <div class="a">
-        <p>Yes. To update, download the new version and replace the old one. Your cat's name, coat and stats are saved separately, so it carries over.</p>
-      </div>
-    </details>
-    <details>
-      <summary>How do I uninstall it?</summary>
-      <div class="a">
-        <p><b>Mac:</b> if you turned on Open at Login, turn it off in the cat's menu first. Then choose Quit from the cat face in the menu bar and drag Purrgram from Applications to the Trash. To also remove your cat's save, delete the folder <code>~/Library/Application Support/DesktopCat</code>.</p>
-        <p><b>Windows:</b> in the tray menu, untick Start with Windows if it's on, then choose Quit and delete the Purrgram folder. Your cat's save is in <code>%APPDATA%\Purrgram</code>.</p>
-      </div>
-    </details>
-    <details>
-      <summary>Does it work with more than one screen?</summary>
-      <div class="a">
-        <p>The cat lives on your main screen (on Windows, along the main screen's taskbar).</p>
-      </div>
-    </details>
-    <details>
-      <summary>Is it really free?</summary>
-      <div class="a">
-        <p>Yes. No ads, no account, no in-app purchases.</p>
-      </div>
-    </details>
-  </section>
+<section class="band" id="faq">
+  <div class="wrap">
+    <h2>Questions</h2>
+    <div class="faq">
+      <details>
+        <summary>Why does my computer warn me when I first open it? Is it safe?</summary>
+        <div class="a">
+          <p>Purrgram isn't sold through an app store and isn't registered with Apple or Microsoft (that takes a paid developer account), so your computer asks you to confirm once that you trust it.</p>
+          <p>The app has no network code at all, so it can't send anything anywhere, and it doesn't ask for any permissions.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Will it slow down my computer?</summary>
+        <div class="a"><p>No. On a Mac it averages about 3% of one processor core. It redraws less often while the cat is calm, pauses completely when your screen sleeps or the lid is closed, and saves extra battery in Low Power Mode. On Windows it also hides during full-screen games, videos and presentations.</p></div>
+      </details>
+      <details>
+        <summary>Does my cat keep its progress when I update?</summary>
+        <div class="a"><p>Yes. Download the new version and replace the old one. Your cat's name, coat and stats are saved separately, so it carries over.</p></div>
+      </details>
+      <details>
+        <summary>How do I uninstall it?</summary>
+        <div class="a">
+          <p><b>Mac:</b> turn off Open at Login in the cat's menu if it's on, choose Quit, and drag Purrgram from Applications to the Trash. To also remove your cat's save, delete <code>~/Library/Application Support/DesktopCat</code>.</p>
+          <p><b>Windows:</b> untick Start with Windows in the tray menu if it's on, choose Quit, and delete the Purrgram folder. Your cat's save is in <code>%APPDATA%\Purrgram</code>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Does it work with more than one screen?</summary>
+        <div class="a"><p>The cat lives on your main screen (on Windows, along the main screen's taskbar).</p></div>
+      </details>
+      <details>
+        <summary>Is it really free?</summary>
+        <div class="a"><p>Yes. No ads, no account, no in-app purchases.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    <p>Purrgram is free. Made for people who'd like a little company while they work.</p>
-    <p><button class="linkish" id="cat-toggle" type="button">Hide the cat</button></p>
-  </footer>
-</div>
+<footer class="wrap">
+  <div class="head">Purrgram</div>
+  <p>A little company while you work.</p>
+  <button class="linkish" id="cat-toggle" type="button">Hide the cat</button>
+</footer>
 
 <canvas id="cat" width="77" height="64" aria-hidden="true"></canvas>
 
