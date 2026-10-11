@@ -117,11 +117,12 @@ extension Cat {
         p.headC = P(29 + c * 4, h + 18 - c * 7 + (amp > 0 ? sin(ph * 2) * 0.8 : 0))
         let base = P(-25, h + 5)
         let wave = CGFloat(sin(time * 2.2)) * 5
-        if c > 0.3 || run {
-            p.tail = [base, base.off(-14, -1), base.off(-26, 3 + wave), base.off(-38, 6 + wave)]
-        } else {
-            p.tail = [base, base.off(-12, 8), base.off(-22, 28), base.off(-14 + wave, 38)]
-        }
+        // Tail held low and straight back when crouched or running, raised in a curl otherwise. In between it
+        // blends, so easing out of a crouch (landing, climbing up) lifts the tail smoothly instead of snapping it up.
+        let low: [CGPoint] = [base, base.off(-14, -1), base.off(-26, 3 + wave), base.off(-38, 6 + wave)]
+        let high: [CGPoint] = [base, base.off(-12, 8), base.off(-22, 28), base.off(-14 + wave, 38)]
+        let kl = run ? 1 : min(max((c - 0.15) / 0.3, 0), 1)
+        p.tail = zip(high, low).map { P($0.x + ($1.x - $0.x) * kl, $0.y + ($1.y - $0.y) * kl) }
         return p
     }
 

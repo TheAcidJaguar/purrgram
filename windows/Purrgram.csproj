@@ -11,7 +11,7 @@
     <RootNamespace>Purrgram</RootNamespace>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Product>Purrgram</Product>
     <Description>A pixel cat that lives on your desktop</Description>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

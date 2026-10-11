@@ -157,6 +157,7 @@ struct Painter {
         }
         let ol = pack(coat.outline)
         stamp(ob, far.1, ol); stamp(ob, main.1, ol); stamp(ob, front.1, ol)
+        closePinholes(ob)
         if coat.fluff {   // lynx tufts on the ear tips
             out.saveGState(); out.translateBy(x: origin.x, y: origin.y); out.scaleBy(x: facing, y: 1)
             out.setFillColor(coat.outline.cgColor)
@@ -235,6 +236,20 @@ struct Painter {
                 else if src.count4(x, y) > 0 { dst.set(x, y, outline) }
             }
         }
+    }
+
+    /// Where two outlined shapes almost touch (legs mid-stride, a curled tail against the body) a single see-through
+    /// pixel can be left boxed in on all four sides; it reads as noise and flickers between frames, so close it up.
+    static func closePinholes(_ b: Buf) {
+        var ch: [(Int, Int, UInt32)] = []
+        for y in 0..<b.h {
+            for x in 0..<b.w where b.get(x, y) >> 24 == 0 {
+                let l = b.get(x - 1, y), r = b.get(x + 1, y), d = b.get(x, y - 1), u = b.get(x, y + 1)
+                guard l >> 24 == 0xFF, r >> 24 == 0xFF, d >> 24 == 0xFF, u >> 24 == 0xFF else { continue }   // cheap test first
+                ch.append((x, y, majority([l, r, d, u])))
+            }
+        }
+        for (x, y, v) in ch { b.set(x, y, v) }
     }
 
     /// One row of darker fur along every bottom edge gives the flat shapes a little weight.
