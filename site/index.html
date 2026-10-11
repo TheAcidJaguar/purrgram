@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#5E2129">
+<meta name="theme-color" content="#1C070B">
 <title>Purrgram: a pixel cat for your desktop</title>
 <meta name="description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta). No account, no internet, no tracking.">
 <meta property="og:type" content="website">
@@ -19,33 +19,37 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/fonts/pixelify-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  /* Two fonts, both served from this site (SIL Open Font License, see /fonts): Pixelify Sans for headings, Nunito for text. */
+  /* Two fonts, both served from this site (SIL Open Font License, see /fonts): the pixel font Pixelify Sans for headings
+     and button labels only; Inter for everything people read. */
   @font-face { font-family: "Pixelify Sans"; font-weight: 400 700; font-display: swap; src: url("/fonts/pixelify-sans-latin.woff2") format("woff2"); }
-  @font-face { font-family: "Nunito"; font-weight: 400 800; font-display: swap; src: url("/fonts/nunito-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 400 700; font-display: swap; src: url("/fonts/inter-latin.woff2") format("woff2"); }
 
   :root {
-    --maroon: #5E2129;      /* main color */
-    --maroon-dk: #4A1920;   /* section bands */
+    --maroon: #1C070B;      /* main color: a very dark maroon */
+    --maroon-dk: #2A0D12;   /* section bands, a touch lighter */
+    --accent: #7A2430;      /* the brighter maroon, for small accents */
     --white: #FFFFFF;       /* second color */
     --soft: #F3D9D6;        /* text on maroon that isn't a heading */
     --ink: #3D1419;         /* text on white */
     --ink-soft: #7A4B50;
     --line: rgba(255, 255, 255, .22);
     --head: "Pixelify Sans", ui-monospace, monospace;
-    --body: "Nunito", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --body: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-  body { margin: 0; background: var(--maroon); color: var(--white); font: 18px/1.65 var(--body); padding-bottom: 130px; }
+  body { margin: 0; background: var(--maroon); color: var(--white); font: 17px/1.65 var(--body); padding-bottom: 130px; }
   img { max-width: 100%; height: auto; }
   .pix, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
-  h1, h2, h3, .head { font-family: var(--head); font-weight: 700; letter-spacing: .5px; line-height: 1.1; }
+  /* The pixel font is only for the big white headings on the dark background; dark text on white uses Inter. */
+  h1, h2, footer .head { font-family: var(--head); font-weight: 700; letter-spacing: .5px; line-height: 1.1; }
+  h3, .head { font-family: var(--body); font-weight: 700; letter-spacing: -.2px; line-height: 1.25; }
   h1 { font-size: clamp(56px, 11vw, 104px); margin: 14px 0 10px; }
   h2 { font-size: clamp(36px, 6vw, 52px); margin: 0 0 28px; text-align: center; }
-  h3 { font-size: 26px; margin: 0 0 8px; }
+  h3 { font-size: 21px; margin: 0 0 8px; }
   p { margin: 0; }
   a { color: inherit; }
   :focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
@@ -64,9 +68,9 @@
     transition: transform .12s ease, box-shadow .12s ease;
   }
   .dl:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.25); }
-  .dl .big { font-family: var(--head); font-weight: 700; font-size: 30px; line-height: 1.2; }
+  .dl .big { font-family: var(--body); font-weight: 700; font-size: 24px; line-height: 1.25; letter-spacing: -.3px; }
   .dl .small { font-size: 15px; color: var(--ink-soft); }
-  .dl .badge { display: none; margin-top: 8px; font-size: 13px; font-weight: 800; color: var(--white); background: var(--maroon); border-radius: 99px; padding: 2px 10px; }
+  .dl .badge { display: none; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--white); background: var(--accent); border-radius: 99px; padding: 2px 10px; }
   .dl.yours .badge { display: inline-block; }
   .meta { text-align: center; color: var(--soft); font-size: 15px; }
   .meta a { color: var(--white); }
@@ -87,31 +91,31 @@
   .picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; }
   .stage { background: var(--white); border-radius: 18px; padding: 10px 16px 20px; text-align: center; }
   .stage canvas { width: 100%; max-width: 408px; aspect-ratio: 51 / 36; display: block; margin: 12px auto 4px; }
-  .stage .head { color: var(--ink); font-size: 30px; }
+  .stage .head { color: var(--ink); font-size: 24px; }
   .stage .blurb { color: var(--ink-soft); margin-top: 4px; min-height: 1.65em; }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
   .chip {
-    font: 700 16px var(--body); color: var(--white); background: transparent; cursor: pointer;
+    font: 600 15px var(--body); color: var(--white); background: transparent; cursor: pointer;
     border: 2px solid var(--line); border-radius: 99px; padding: 7px 16px;
   }
   .chip:hover { border-color: var(--white); }
-  .chip[aria-pressed="true"] { background: var(--white); border-color: var(--white); color: var(--maroon); }
+  .chip[aria-pressed="true"] { background: var(--white); border-color: var(--white); color: var(--ink); }
   .picker .note { text-align: left; margin-top: 18px; }
 
   /* install + FAQ */
   .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .steps ol { margin: 0; padding-left: 22px; }
   .steps li { margin: 8px 0; }
-  .steps li::marker { color: var(--maroon); font-weight: 800; }
+  .steps li::marker { color: var(--accent); font-weight: 700; }
   .steps b { color: var(--ink); }
   .steps .after { margin-top: 12px; font-size: 16px; }
   code { background: #F5E6E4; color: var(--ink); padding: 1px 6px; border-radius: 6px; font-size: 15px; overflow-wrap: anywhere; }
 
   .faq { max-width: 760px; margin: 0 auto; }
   .faq details { background: var(--white); color: var(--ink); border-radius: 14px; margin: 0 0 12px; }
-  .faq summary { cursor: pointer; padding: 16px 52px 16px 20px; font-weight: 800; list-style: none; position: relative; }
+  .faq summary { cursor: pointer; padding: 16px 52px 16px 20px; font-weight: 700; list-style: none; position: relative; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; position: absolute; right: 20px; top: 9px; font: 700 30px var(--head); color: var(--maroon); }
+  .faq summary::after { content: "+"; position: absolute; right: 20px; top: 9px; font: 600 26px var(--body); color: var(--accent); }
   .faq details[open] summary::after { content: "–"; }
   .faq summary:focus-visible { outline-color: var(--white); border-radius: 14px; }
   .faq .a { padding: 0 20px 18px; color: var(--ink-soft); }
@@ -123,7 +127,7 @@
   .linkish { font: inherit; color: var(--white); background: none; border: 0; padding: 0; margin-top: 10px; text-decoration: underline; cursor: pointer; }
 
   /* the live cat at the bottom of the window: clicks only land on the cat's own pixels (see script) */
-  #cat { position: fixed; left: 0; bottom: 0; pointer-events: none; z-index: 50; }
+  #cat { position: fixed; left: 0; bottom: 0; pointer-events: none; z-index: 50; visibility: hidden; }
   .heart { position: fixed; pointer-events: none; z-index: 51; animation: rise 1.5s ease-out forwards; }
   @keyframes rise {
     0% { transform: translate(-50%, 0); opacity: 1; }
@@ -135,7 +139,7 @@
     header.wrap { padding-top: 40px; }
     section { padding: 52px 0; }
     .downloads, .grid3, .steps, .picker { grid-template-columns: 1fr; }
-    .dl .big { font-size: 26px; }
+    .dl .big { font-size: 21px; }
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -171,9 +175,9 @@
   <div class="wrap">
     <h2>A cat with a mind of its own</h2>
     <div class="grid3">
-      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="520" loading="lazy"><figcaption>Jumps onto your windows and rides along when you drag them</figcaption></figure>
-      <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="520" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
-      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="520" loading="lazy"><figcaption>Hides in one click when you need to focus</figcaption></figure>
+      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="556" loading="lazy"><figcaption>Jumps onto your windows and rides along when you drag them</figcaption></figure>
+      <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="556" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
+      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="556" loading="lazy"><figcaption>Hides in one click when you need to focus</figcaption></figure>
     </div>
   </div>
 </section>
@@ -285,8 +289,9 @@
   "use strict";
   // Frames are the app's own pre-rendered animations (one 77×64 art-pixel frame per step; the feet sit at x 38, 12 up).
   var FW = 77, FH = 64, OX = 38, OY = 12;
-  var CLIPS = { sit: [10, 1], walk: [20, 1], run: [30, 1], loaf: [10, 1], groom: [12, 1], sleep: [8, 1], petted: [15, 1],
+  var CLIPS = { sit: [10, 1], walk: [20, 1], run: [30, 1], loaf: [10, 1], groom: [12, 1], petted: [15, 1],
                 carried: [10, 1], airUp: [10, 1], airDown: [10, 1], land: [30, 0], lookUp: [10, 1], yawn: [15, 0], stretch: [15, 0] };
+  // (No sleeping here: on the page the cat is always awake.)
   var COATS = [
     ["Slate", "Soft blue-grey: the original Purrgram cat."], ["Charcoal", "Solid smoky grey."],
     ["Siamese", "Cream with dark seal points and bright blue eyes."], ["Tan Tabby", "Warm tan with gentle stripes."],
@@ -319,8 +324,16 @@
     var n = frameCount(im), f = Math.floor(t * CLIPS[clip][0]);
     return CLIPS[clip][1] ? ((f % n) + n) % n : clamp(f, 0, n - 1);
   }
-  function clipLength(clip) { var im = strip(coat, clip, true); return ready(im) ? frameCount(im) / CLIPS[clip][0] : 2; }
+  function clipLength(clip) { var im = strip(shown >= 0 ? shown : coat, clip, true); return ready(im) ? frameCount(im) / CLIPS[clip][0] : 2; }
   function preload(c) { for (var k in CLIPS) { strip(c, k, true); strip(c, k, false); } }
+  // Whether every animation of coat `c` has finished loading (a failed file counts as finished, so nothing waits forever).
+  function coatLoaded(c) {
+    for (var k in CLIPS) { if (!strip(c, k, true).complete || !strip(c, k, false).complete) return false; }
+    return true;
+  }
+  // The coat the live cat is actually drawn with. It only changes once the new coat has fully loaded, so the cat never
+  // shows a leftover frame (say, sitting) while it walks, and never appears half-loaded.
+  var shown = -1;
 
   // MARK: version line (written by the build next to this page, so nothing is fetched from anywhere else)
   fetch("/version.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
@@ -400,7 +413,6 @@
       [16, function () { return [A("sit", { d: rnd(3, 8) })]; }],
       [12, function () { return [A("groom", { d: rnd(5, 9) })]; }],
       [12, function () { return [A("loaf", { d: rnd(8, 20) })]; }],
-      [6, function () { return [A("loaf", { d: rnd(2, 4) }), A("sleep", { d: rnd(20, 45) }), A("yawn"), A("stretch")]; }],
       [6, function () { return [A("stretch"), A("sit", { d: 2 })]; }],
       [3, function () { return [A("yawn"), A("sit", { d: 2 })]; }],
       [3, function () { var p = [A("sit", { d: 0.4 })]; for (var i = 0; i < 3; i++) p.push(A("walk", { x: rnd(40, W - 40), run: true })); p.push(A("sit", { d: 2 })); return p; }]
@@ -453,15 +465,17 @@
   }
 
   function currentFrame() {
-    var clip = clipFor(cat.act), im = strip(coat, clip, cat.facing > 0);
-    var t = cat.act.k === "sit" || cat.act.k === "loaf" || cat.act.k === "sleep" || cat.act.k === "carried" ? cat.time : cat.t;
+    var clip = clipFor(cat.act), im = strip(shown, clip, cat.facing > 0);
+    var t = cat.act.k === "sit" || cat.act.k === "loaf" || cat.act.k === "carried" ? cat.time : cat.t;
     return { im: im, clip: clip, f: ready(im) ? frameAt(im, clip, t) : 0 };
   }
   function draw() {
+    if (shown !== coat && coatLoaded(coat)) { shown = coat; lastKey = ""; cv.style.visibility = "visible"; }
+    if (shown < 0) return;   // still loading: stay invisible rather than show a frame that doesn't match what the cat is doing
     var fr = currentFrame();
     cv.style.transform = "translate(" + Math.round(cat.x - OX * S) + "px," + Math.round(-(cat.y - OY * S)) + "px)";
-    if (!ready(fr.im)) return;
-    var key = coat + fr.clip + fr.f + (cat.facing > 0);
+    if (!ready(fr.im)) { ctx.clearRect(0, 0, FW, FH); lastKey = ""; return; }
+    var key = shown + fr.clip + fr.f + (cat.facing > 0);
     if (key === lastKey) return;
     lastKey = key;
     ctx.clearRect(0, 0, FW, FH);
@@ -497,7 +511,7 @@
   var probe = document.createElement("canvas"); probe.width = FW; probe.height = FH;
   var pctx = probe.getContext("2d", { willReadFrequently: true });
   function onCat(cx, cy) {
-    if (hidden || !cat.act) return false;
+    if (hidden || !cat.act || shown < 0) return false;
     var r = cv.getBoundingClientRect(), ax = Math.floor((cx - r.left) / S), ay = Math.floor((cy - r.top) / S);
     if (ax < 0 || ay < 0 || ax >= FW || ay >= FH) return false;
     var fr = currentFrame(); if (!ready(fr.im)) return false;
@@ -550,7 +564,6 @@
     petTimes = petTimes.filter(function (t) { return cat.time - t < 10; }); petTimes.push(cat.time);
     if (petTimes.length >= 8) { petTimes = []; shoo(); return; }   // overstimulated: off they go
     heart();
-    if (cat.act.k === "sleep") return;
     if (cat.act.k === "petted") { cat.t = Math.min(cat.t, 1); return; }
     interrupt([A("petted", { d: 3.2 }), A("sit", { d: 2 })]);
   }

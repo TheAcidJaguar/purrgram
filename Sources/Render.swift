@@ -92,6 +92,38 @@ func renderCloseup(_ path: String, coat: Int = 0) {
 
 /// Animated GIF demos rendered with the real drawing code: "catch" (edge catch), "claw" (scratching a window
 /// edge) and "hide" (the Hide Everything toggle).
+/// The warm backdrop shared by the README / download page pictures: a peach gradient that matches the app icon,
+/// and a soft "floor" band of height `floor` along the bottom of the screen.
+func drawBackdrop(_ ctx: CGContext, width W: CGFloat, height H: CGFloat, floor: CGFloat) {
+    let grad = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
+                          colors: [rgb(0xFFF5EF).cgColor, rgb(0xFBDDD0).cgColor] as CFArray, locations: [0, 1])!
+    ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: H), end: CGPoint(x: 0, y: 0), options: [])
+    ctx.setFillColor(rgb(0xF2C7B6).cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: floor))
+    ctx.setFillColor(rgb(0xE8B3A0).cgColor); ctx.fill(CGRect(x: 0, y: floor - PX, width: W, height: PX))
+}
+
+/// An app window for the cat to sit on or scratch: rounded body with a soft shadow, title bar, traffic lights
+/// and a few lines of "content".
+func drawAppWindow(_ ctx: CGContext, _ win: CGRect) {
+    ctx.saveGState()
+    ctx.setShadow(offset: CGSize(width: 0, height: -4), blur: 14, color: NSColor.black.withAlphaComponent(0.18).cgColor)
+    ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.setFillColor(.white); ctx.fillPath()
+    ctx.restoreGState()
+    ctx.saveGState()
+    ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.clip()
+    ctx.setFillColor(rgb(0xEDEBF0).cgColor); ctx.fill(CGRect(x: win.minX, y: win.maxY - 26, width: win.width, height: 26))
+    for (i, c) in [0xFF5F57, 0xFEBC2E, 0x28C840].enumerated() {
+        ctx.setFillColor(rgb(c).cgColor); ctx.fillEllipse(in: CGRect(x: win.minX + 12 + CGFloat(i) * 18, y: win.maxY - 18, width: 11, height: 11))
+    }
+    ctx.setFillColor(rgb(0xE9E6EE).cgColor)
+    for (i, w) in [0.62, 0.8, 0.5].enumerated() where win.maxY - 56 - CGFloat(i) * 26 > win.minY + 12 {
+        ctx.fill(CGRect(x: win.minX + 22, y: win.maxY - 56 - CGFloat(i) * 26, width: (win.width - 44) * CGFloat(w), height: 10))
+    }
+    ctx.restoreGState()
+    ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil))
+    ctx.setStrokeColor(rgb(0xD3CED9).cgColor); ctx.setLineWidth(1); ctx.strokePath()
+}
+
 func renderGIF(_ scene: String, _ path: String, coat: Int) {
     let world = World()
     world.screen = CGRect(x: 0, y: 0, width: 330, height: 260); world.vis = world.screen
@@ -127,7 +159,8 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
     let frames = Int(seconds * fps)
     guard let dest = CGImageDestinationCreateWithURL(URL(fileURLWithPath: path) as CFURL, "com.compuserve.gif" as CFString, frames, nil) else { return }
     CGImageDestinationSetProperties(dest, [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: 0]] as CFDictionary)
-    let W = Int(world.screen.width * scale), H = Int(world.screen.height * scale)
+    let floorH: CGFloat = 18   // the floor band under the scene, as in the hero picture
+    let W = Int(world.screen.width * scale), H = Int((world.screen.height + floorH) * scale)
     for f in 0..<frames {
         let t = Double(f) / fps
         let hidden = scene == "hide" && t > 1.8 && t < 3.6
@@ -136,16 +169,9 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { continue }
         ctx.interpolationQuality = .none
         ctx.scaleBy(x: scale, y: scale)
-        ctx.setFillColor(rgb(0xE9E4F2).cgColor); ctx.fill(world.screen)
-        if scene != "hide" && scene != "eat" {   // a simple app window: body + title bar with traffic lights
-            let r = win.rect
-            ctx.setFillColor(rgb(0xFFFFFF).cgColor); ctx.fill(r)
-            ctx.setFillColor(rgb(0xDADADF).cgColor); ctx.fill(CGRect(x: r.minX, y: r.maxY - 22, width: r.width, height: 22))
-            for (i, c) in [0xFF5F57, 0xFEBC2E, 0x28C840].enumerated() {
-                ctx.setFillColor(rgb(c).cgColor); ctx.fillEllipse(in: CGRect(x: r.minX + 9 + CGFloat(i) * 15, y: r.maxY - 15, width: 9, height: 9))
-            }
-            ctx.setStrokeColor(rgb(0xB8B8C0).cgColor); ctx.setLineWidth(1); ctx.stroke(r)
-        }
+        drawBackdrop(ctx, width: world.screen.width, height: world.screen.height + floorH, floor: floorH)
+        ctx.translateBy(x: 0, y: floorH)   // the scene stands on the floor band
+        if scene != "hide" && scene != "eat" { drawAppWindow(ctx, win.rect) }
         if !hidden {
             let eating: Bool = { if case .eat = cat.act { return true }; return false }()
             func bowls() {
@@ -250,31 +276,8 @@ func renderHero(_ path: String) {
     }
 
     renderPNG(size: CGSize(width: W, height: H), scale: 3, to: path) { ctx in
-        // Warm backdrop that matches the app icon, and a soft "floor" along the bottom of the screen.
-        let grad = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
-                              colors: [rgb(0xFFF5EF).cgColor, rgb(0xFBDDD0).cgColor] as CFArray, locations: [0, 1])!
-        ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: H), end: CGPoint(x: 0, y: 0), options: [])
-        ctx.setFillColor(rgb(0xF2C7B6).cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: floorY))
-        ctx.setFillColor(rgb(0xE8B3A0).cgColor); ctx.fill(CGRect(x: 0, y: floorY - PX, width: W, height: PX))
-
-        // An app window for the cat to sit on: body, title bar, traffic lights and a few lines of "content".
-        ctx.saveGState()
-        ctx.setShadow(offset: CGSize(width: 0, height: -4), blur: 14, color: NSColor.black.withAlphaComponent(0.18).cgColor)
-        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.setFillColor(.white); ctx.fillPath()
-        ctx.restoreGState()
-        ctx.saveGState()
-        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil)); ctx.clip()
-        ctx.setFillColor(rgb(0xEDEBF0).cgColor); ctx.fill(CGRect(x: win.minX, y: win.maxY - 26, width: win.width, height: 26))
-        for (i, c) in [0xFF5F57, 0xFEBC2E, 0x28C840].enumerated() {
-            ctx.setFillColor(rgb(c).cgColor); ctx.fillEllipse(in: CGRect(x: win.minX + 12 + CGFloat(i) * 18, y: win.maxY - 18, width: 11, height: 11))
-        }
-        ctx.setFillColor(rgb(0xE9E6EE).cgColor)
-        for (i, w) in [0.62, 0.8, 0.5].enumerated() {
-            ctx.fill(CGRect(x: win.minX + 22, y: win.maxY - 56 - CGFloat(i) * 26, width: (win.width - 44) * CGFloat(w), height: 10))
-        }
-        ctx.restoreGState()
-        ctx.addPath(CGPath(roundedRect: win, cornerWidth: 9, cornerHeight: 9, transform: nil))
-        ctx.setStrokeColor(rgb(0xD3CED9).cgColor); ctx.setLineWidth(1); ctx.strokePath()
+        drawBackdrop(ctx, width: W, height: H, floor: floorY)
+        drawAppWindow(ctx, win)
 
         // The cast.
         drawCat(ctx, coat: "Siamese", act: .loaf(99), t: 1, x: 190, y: win.maxY, facing: -1, onWindow: true)
