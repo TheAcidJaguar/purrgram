@@ -55,13 +55,13 @@
   :focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
 
   /* top */
-  header.wrap { text-align: center; padding-top: 64px; padding-bottom: 8px; }
+  header.wrap { text-align: center; padding-top: 64px; padding-bottom: 64px; }
   .logo { width: 156px; height: 156px; border-radius: 36px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
   .tag { font-size: clamp(19px, 2.4vw, 23px); color: var(--soft); max-width: 720px; text-wrap: balance; margin: 0 auto; }
   .hero { margin: 36px auto 0; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px rgba(0,0,0,.3); }
   .hero img { display: block; width: 100%; }
 
-  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 36px 0 14px; }
+  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 36px 0 18px; }
   .dl {
     display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; text-decoration: none;
     background: var(--white); color: var(--ink); border-radius: 16px; padding: 22px 16px; border: 3px solid var(--white);
@@ -141,8 +141,9 @@
   .coffee:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
   .coffee:focus-visible { outline: 3px solid #FFDD00; outline-offset: 3px; }
   .coffee .cup { font-size: 20px; line-height: 1; }
-  .coffee-row { text-align: center; margin-top: 22px; }
-  .coffee-row p { color: var(--soft); font-size: 15px; margin-top: 10px; }
+  /* Set well apart from the downloads, with a faint rule between, so it reads as its own thing. */
+  .coffee-row { text-align: center; max-width: 600px; margin: 48px auto 0; padding-top: 40px; border-top: 1px solid rgba(255,255,255,.12); }
+  .coffee-row p { color: var(--soft); font-size: 15px; margin-top: 16px; }
   .coffee-row b { color: var(--white); }
   .linkish { font: inherit; color: var(--white); background: none; border: 0; padding: 0; margin-top: 10px; text-decoration: underline; cursor: pointer; }
 
