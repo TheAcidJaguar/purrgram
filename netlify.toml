@@ -1,0 +1,4 @@
+# The download page (purrgram.netlify.app) is the static site in site/. Nothing to build.
+[build]
+  publish = "site"
+  command = ""

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Purrgram: a pixel cat for your desktop</title>
+<meta name="description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta). No account, no internet, no tracking.">
+<meta property="og:title" content="Purrgram: a pixel cat for your desktop">
+<meta property="og:description" content="A free pixel-art pet cat that lives on your desktop. Mac, plus Windows (beta).">
+<meta property="og:image" content="/hero.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FDF3EE; --bg2: #F7E2D8; --card: #FFFFFF; --text: #3A2A24; --muted: #7A6158;
+    --line: #EBD3C8; --accent: #E0506C; --mac: #1D1D1F; --win: #0078D4; --code: #F4E6DF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1A1416; --bg2: #241B1E; --card: #2A2124; --text: #F3E6DF; --muted: #B9A39A;
+      --line: #3B2F33; --accent: #F2708A; --mac: #F5F5F7; --win: #2B8AE0; --code: #33282C;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  img { max-width: 100%; height: auto; }
+  .pix { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 24px; text-align: center; }
+  .logo { width: 72px; height: 72px; border-radius: 16px; }
+  h1 {
+    font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400;
+    font-size: clamp(28px, 6vw, 44px); letter-spacing: 1px; margin: 18px 0 14px;
+  }
+  .tag { font-size: clamp(18px, 2.6vw, 21px); color: var(--muted); max-width: 640px; margin: 0 auto; }
+  h2 {
+    font-family: "Press Start 2P", ui-monospace, monospace; font-weight: 400;
+    font-size: 17px; line-height: 1.6; margin: 0 0 18px;
+  }
+  .hero { margin: 32px auto 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .hero img { display: block; width: 100%; }
+
+  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0 8px; }
+  .dl {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none;
+    padding: 20px 16px; border-radius: 14px; border: 2px solid transparent; color: #fff;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .dl:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.14); }
+  .dl:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .dl.mac { background: var(--mac); }
+  .dl.win { background: var(--win); }
+  @media (prefers-color-scheme: dark) { .dl.mac { color: #1D1D1F; } }
+  .dl .big { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 15px; line-height: 1.5; }
+  .dl .small { font-size: 14px; opacity: .85; }
+  .dl.yours { border-color: var(--accent); }
+  .dl.yours .badge { display: inline-block; }
+  .badge {
+    display: none; font-size: 12px; font-weight: 700; background: var(--accent); color: #fff;
+    padding: 2px 8px; border-radius: 99px; margin-top: 6px;
+  }
+  .fine { text-align: center; color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+  .fine a { color: inherit; }
+
+  section { padding: 44px 0 4px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  figure { margin: 0; }
+  figure img { display: block; width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; text-align: center; }
+  .coats { background: #EDEDED; border-radius: 14px; border: 1px solid var(--line); padding: 8px; }
+  .coats img { display: block; width: 100%; }
+
+  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .steps ol { margin: 0; padding-left: 20px; }
+  .steps li { margin: 6px 0; }
+  .steps li::marker { color: var(--accent); font-weight: 700; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 14px; }
+  kbd { font: inherit; font-weight: 600; }
+
+  footer { padding: 48px 0 56px; text-align: center; color: var(--muted); font-size: 14px; }
+  footer a { color: inherit; }
+
+  @media (max-width: 720px) {
+    header { padding-top: 36px; }
+    .downloads, .grid3, .steps { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dl { transition: none; } .dl:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img class="logo" src="/apple-touch-icon.png" alt="" width="72" height="72">
+    <h1>Purrgram</h1>
+    <p class="tag">A pixel-art pet cat that lives on your desktop, right alongside your windows while you work. Free, for Mac and Windows (beta).</p>
+    <div class="hero"><img class="pix" src="/hero.png" alt="Pixel cats on a desktop: one loafing on a window, one walking, one batting a ball of yarn, one sitting by its food and water bowls" width="2280" height="696"></div>
+  </header>
+
+  <div class="downloads" id="download">
+    <a class="dl mac" id="dl-mac" href="/mac">
+      <span class="big">Download for Mac</span>
+      <span class="small">Full version · macOS 12 or newer · Apple Silicon and Intel</span>
+      <span class="badge">Your computer</span>
+    </a>
+    <a class="dl win" id="dl-win" href="/windows">
+      <span class="big">Download for Windows</span>
+      <span class="small">Beta (Lite) · Windows 10 or 11</span>
+      <span class="badge">Your computer</span>
+    </a>
+  </div>
+  <p class="fine">Always the latest version · No account, no internet, no tracking · <a href="#install">How to install</a></p>
+
+  <section>
+    <h2>A cat with a mind of its own</h2>
+    <div class="grid3">
+      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="520" loading="lazy"><figcaption>Jumps onto your windows (and rides along when you drag them)</figcaption></figure>
+      <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="520" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
+      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="520" loading="lazy"><figcaption>Hide everything in one click when you need to focus</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Look after it</h2>
+    <div class="grid3">
+      <div class="card"><h3>Pet, shoo, pick up</h3><p>Click to pet (it purrs), double-click to shoo it, drag to pick it up and drop it on a window.</p></div>
+      <div class="card"><h3>Keep it happy</h3><p>Like a Tamagotchi: keep the food and water bowls full, give it attention, brush its coat, hand out treats.</p></div>
+      <div class="card"><h3>Stays out of your way</h3><p>Clicks pass straight through to your work, it's light on battery, and it pauses when you close the lid.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>12 coats to choose from</h2>
+    <div class="coats"><img class="pix" src="/coats.png" alt="Twelve cat coats: Slate, Charcoal, Siamese, Tan Tabby, Orange Tabby, Midnight, Tuxedo, Cream, Maine Coon, British Shorthair, Bengal and Sphynx" width="2310" height="230" loading="lazy"></div>
+    <p class="fine">Slate, Charcoal, Siamese, Tan Tabby, Orange Tabby, Midnight, Tuxedo, Cream, Maine Coon, British Shorthair, Bengal and Sphynx. Add a collar and pick a mood.</p>
+  </section>
+
+  <section id="install">
+    <h2>How to install</h2>
+    <div class="steps">
+      <div class="card">
+        <h3>Mac</h3>
+        <ol>
+          <li>Open <code>Purrgram.dmg</code> and drag <b>Purrgram</b> onto <b>Applications</b>.</li>
+          <li>Open Purrgram from Applications. macOS says it couldn't verify it (it's not from the App Store). Click <b>Done</b>.</li>
+          <li>Go to <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>.</li>
+          <li>Name your cat!</li>
+        </ol>
+        <p style="margin-top:10px">You only do steps 2–3 once.</p>
+      </div>
+      <div class="card">
+        <h3>Windows (beta)</h3>
+        <ol>
+          <li>Right-click <code>Purrgram-Windows.zip</code> → <b>Extract All</b>, and keep the folder somewhere like Documents.</li>
+          <li>Double-click <b>Purrgram.exe</b>. If Windows says "Windows protected your PC", click <b>More info</b> → <b>Run anyway</b>.</li>
+          <li>Your cat appears on top of the taskbar. Its menu is the cat icon in the system tray, near the clock (it may be under the <kbd>^</kbd> arrow).</li>
+        </ol>
+        <p style="margin-top:10px">The Windows version is a lighter beta: it stays on the taskbar and has no toys or sounds yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Private by design</h2>
+    <div class="card"><p>Purrgram runs entirely on your computer. It has no network code, so it never connects to the internet and sends nothing anywhere, and it doesn't ask for any permissions. Each release lists SHA-256 fingerprints so you can check your download is genuine.</p></div>
+  </section>
+
+  <footer>
+    Purrgram is free and open source. <a href="https://github.com/TheAcidJaguar/purrgram">Source code</a> · <a href="https://github.com/TheAcidJaguar/purrgram/releases/latest">Release notes and fingerprints</a>
+  </footer>
+</div>
+<script>
+  // Point out the download that matches this computer (the other one stays available).
+  (function () {
+    var ua = navigator.userAgent || "", id = /Windows/i.test(ua) ? "dl-win" : /Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "dl-mac" : null;
+    if (id) document.getElementById(id).classList.add("yours");
+  })();
+</script>
+</body>
+</html>
