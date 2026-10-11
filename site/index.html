@@ -109,40 +109,6 @@
   .chip[aria-pressed="true"] { background: var(--white); border-color: var(--white); color: var(--ink); }
   .picker .note { text-align: left; margin-top: 18px; }
 
-  /* "Don't see your cat?" photo form */
-  .lede { text-align: center; color: var(--soft); font-size: 19px; margin: -14px auto 28px; max-width: 560px; }
-  .send { max-width: 640px; margin: 0 auto; }
-  .hp { position: absolute; left: -9999px; }
-  .drop {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-    min-height: 190px; padding: 18px; border: 2px dashed #D9B4AE; border-radius: 14px; background: #FBF1EF; text-align: center;
-  }
-  .drop:hover, .drop.over { border-color: var(--accent); background: #F8E6E3; }
-  .drop:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .drop input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  .drop img { max-height: 220px; max-width: 100%; min-height: 120px; object-fit: contain; border-radius: 10px; }
-  .drop-text { color: var(--ink-soft); font-size: 15px; }
-  .drop-text b { color: var(--ink); font-size: 17px; }
-  .fields { display: grid; gap: 14px; margin: 18px 0 6px; }
-  .fields label { display: grid; gap: 6px; font-weight: 600; color: var(--ink); font-size: 15px; }
-  .fields .opt { font-weight: 400; color: var(--ink-soft); }
-  .fields input[type=text], .fields textarea {
-    font: 16px var(--body); color: var(--ink); background: #fff; border: 1.5px solid #E2C9C5; border-radius: 10px; padding: 10px 12px;
-  }
-  .fields textarea { resize: vertical; }
-  .fields input[type=text]:focus, .fields textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(122,36,48,.15); }
-  .fields .check { grid-template-columns: auto 1fr; align-items: start; font-weight: 400; color: var(--ink-soft); }
-  .fields .check input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent); }
-  .send-btn {
-    width: 100%; margin-top: 14px; font: 700 18px var(--body); color: #fff; background: var(--accent);
-    border: 0; border-radius: 12px; padding: 14px; cursor: pointer;
-  }
-  .send-btn:hover { filter: brightness(1.1); }
-  .send-btn:disabled { opacity: .6; cursor: default; }
-  .status { margin-top: 10px; font-weight: 600; text-align: center; color: var(--ink); min-height: 1.4em; }
-  .status.err { color: #B3261E; }
-  .small-print { font-size: 13px; color: var(--ink-soft); text-align: center; margin-top: 6px; }
-
   /* install + FAQ */
   .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .steps ol { margin: 0; padding-left: 22px; }
@@ -272,39 +238,7 @@
   </div>
 </section>
 
-<section id="your-cat">
-  <div class="wrap">
-    <h2>Don't see your cat?</h2>
-    <p class="lede">Send in a photo to be included in the next update.</p>
-    <!-- Netlify Forms: submissions (photo included) land in the Netlify dashboard, so no email address is shown here. -->
-    <form class="card send" id="send-cat" name="send-your-cat" method="POST" action="/thanks.html"
-          enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="send-your-cat">
-      <p class="hp"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
-
-      <label class="drop" id="drop">
-        <input type="file" name="photo" id="photo" accept="image/*" required>
-        <img id="photo-preview" alt="" hidden>
-        <span class="drop-text" id="drop-text"><b>Choose a photo of your cat</b><br>or drag it here · JPG, PNG or HEIC, up to 8 MB</span>
-      </label>
-
-      <div class="fields">
-        <label><span>Your cat's name <span class="opt">(optional)</span></span>
-          <input type="text" name="cat-name" maxlength="40" autocomplete="off" placeholder="Mochi"></label>
-        <label><span>Anything about their coat? <span class="opt">(optional)</span></span>
-          <textarea name="notes" rows="3" maxlength="500" placeholder="Grey tabby with white socks and one orange ear"></textarea></label>
-        <label class="check"><input type="checkbox" name="ok-to-use" value="yes" required>
-          <span>This is my photo, and Purrgram can use it to design a new coat.</span></label>
-      </div>
-
-      <button class="send-btn" type="submit" id="send-btn">Send photo</button>
-      <p class="status" id="send-status" role="status" aria-live="polite"></p>
-      <p class="small-print">Only the photo and what you type here are sent: no account, no email address needed.</p>
-    </form>
-  </div>
-</section>
-
-<section class="band" id="install">
+<section id="install">
   <div class="wrap">
     <h2>How to install</h2>
     <div class="steps">
@@ -331,7 +265,7 @@
   </div>
 </section>
 
-<section id="faq">
+<section class="band" id="faq">
   <div class="wrap">
     <h2>Questions</h2>
     <div class="faq">
@@ -688,43 +622,6 @@
     store.set("purrgram.cat.hidden", hidden ? "1" : "0");
   }
   toggle.addEventListener("click", function () { hidden = !hidden; applyHidden(); lastKey = ""; });
-
-  // MARK: "Don't see your cat?" form: photo preview, drag and drop, size check, and sending without leaving the page.
-  (function () {
-    var form = document.getElementById("send-cat"); if (!form) return;
-    var input = document.getElementById("photo"), drop = document.getElementById("drop"), prev = document.getElementById("photo-preview");
-    var dropText = document.getElementById("drop-text"), status = document.getElementById("send-status"), btn = document.getElementById("send-btn");
-    var MAX = 8 * 1024 * 1024, url = null;
-    function say(msg, bad) { status.textContent = msg; status.classList.toggle("err", !!bad); }
-    function show(file) {
-      if (url) URL.revokeObjectURL(url);
-      if (!file) { prev.hidden = true; dropText.hidden = false; return; }
-      if (file.size > MAX) { say("That photo is over 8 MB. Please pick a smaller one.", true); input.value = ""; show(null); return; }
-      say("");
-      url = URL.createObjectURL(file); prev.src = url; prev.hidden = false;
-      prev.onerror = function () { prev.hidden = true; dropText.hidden = false; dropText.innerHTML = "<b>" + file.name.replace(/[<>&]/g, "") + "</b><br>ready to send"; };
-      dropText.hidden = true;
-    }
-    input.addEventListener("change", function () { show(input.files[0]); });
-    ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
-    ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
-    drop.addEventListener("drop", function (e) {
-      var f = e.dataTransfer && e.dataTransfer.files[0];
-      if (f && /^image\//.test(f.type)) { var dt = new DataTransfer(); dt.items.add(f); input.files = dt.files; show(f); }
-    });
-    form.addEventListener("submit", function (e) {
-      if (!window.fetch || !window.FormData) return;   // old browsers: a normal post, landing on /thanks.html
-      e.preventDefault();
-      if (!input.files[0]) { say("Please choose a photo first.", true); return; }
-      btn.disabled = true; say("Sending…");
-      fetch("/", { method: "POST", body: new FormData(form) }).then(function (r) {
-        if (!r.ok) throw new Error(r.status);
-        form.reset(); show(null); say("Thank you! Your cat's photo is on its way. 🐾");
-      }).catch(function () {
-        say("Sorry, that didn't go through. Please try again in a moment.", true);
-      }).then(function () { btn.disabled = false; });
-    });
-  })();
 
   // MARK: go
   setCoat(coat, false);
