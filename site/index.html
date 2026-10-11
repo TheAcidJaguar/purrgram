@@ -97,6 +97,7 @@
     background: linear-gradient(to bottom, transparent 83.33%, #E8B3A0 83.33%, #E8B3A0 86.11%, #F2C7B6 86.11%);
   }
   .stage .label { background: #F2C7B6; padding: 2px 16px 20px; }
+  .stage canvas.loading { opacity: .45; transition: opacity .2s; }
   .stage .head { color: var(--ink); font-size: 24px; }
   .stage .blurb { color: var(--ink-soft); margin-top: 4px; min-height: 1.65em; }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -181,9 +182,9 @@
   <div class="wrap">
     <h2>A cat with a mind of its own</h2>
     <div class="grid3">
-      <figure><img class="pix" src="/edge-catch-climb.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="556" loading="lazy"><figcaption>Jumps onto your windows and rides along when you drag them</figcaption></figure>
-      <figure><img class="pix" src="/scratching.gif" alt="The cat rears up and scratches the side of a window" width="660" height="556" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
-      <figure><img class="pix" src="/hide-everything.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="556" loading="lazy"><figcaption>Hides in one click when you need to focus</figcaption></figure>
+      <figure><img class="pix demo" data-scene="catch" src="/demos/2/catch.gif" alt="The cat leaps for a window, catches the edge and climbs up" width="660" height="556" loading="lazy"><figcaption>Jumps onto your windows and rides along when you drag them</figcaption></figure>
+      <figure><img class="pix demo" data-scene="claw" src="/demos/2/claw.gif" alt="The cat rears up and scratches the side of a window" width="660" height="556" loading="lazy"><figcaption>Scratches, stretches, grooms and naps</figcaption></figure>
+      <figure><img class="pix demo" data-scene="hide" src="/demos/2/hide.gif" alt="The cat and its bowls disappear and come back with Hide Everything" width="660" height="556" loading="lazy"><figcaption>Hides in one click when you need to focus</figcaption></figure>
     </div>
   </div>
 </section>
@@ -213,7 +214,7 @@
       </div>
       <div>
         <div class="chips" id="chips" role="group" aria-label="Cat coats"></div>
-        <p class="note">12 coats, a collar in any color, and five moods: playful, lazy, clingy, skittish or curious. Picking a coat here changes the cat at the bottom of the page too.</p>
+        <p class="note">12 coats, a collar in any color, and five moods: playful, lazy, clingy, skittish or curious. Picking a coat here also changes the demos above and the cat at the bottom of the page.</p>
       </div>
     </div>
   </div>
@@ -334,10 +335,14 @@
   }
   function clipLength(clip) { var im = strip(shown >= 0 ? shown : coat, clip, true); return ready(im) ? frameCount(im) / CLIPS[clip][0] : 2; }
   function preload(c) { for (var k in CLIPS) { strip(c, k, true); strip(c, k, false); } }
-  // Whether every animation of coat `c` has finished loading (a failed file counts as finished, so nothing waits forever).
+  // Whether every animation of coat `c` has loaded. Until then the cat keeps its current coat (it never vanishes).
   function coatLoaded(c) {
-    for (var k in CLIPS) { if (!strip(c, k, true).complete || !strip(c, k, false).complete) return false; }
+    for (var k in CLIPS) { if (!ready(strip(c, k, true)) || !ready(strip(c, k, false))) return false; }
     return true;
+  }
+  // Forget any of coat `c`'s files that failed to download, so picking it again tries again.
+  function retryFailed(c) {
+    for (var k in imgs) { if (k.indexOf(c + "/") === 0 && imgs[k].complete && !imgs[k].naturalWidth) delete imgs[k]; }
   }
   // The coat the live cat is actually drawn with. It only changes once the new coat has fully loaded, so the cat never
   // shows a leftover frame (say, sitting) while it walks, and never appears half-loaded.
@@ -366,15 +371,23 @@
     chips.appendChild(b);
   });
   function setCoat(i, fromPicker) {
-    coat = i; store.set("purrgram.coat", String(i)); preload(i);
+    coat = i; store.set("purrgram.coat", String(i)); retryFailed(i); preload(i);
     Array.prototype.forEach.call(chips.children, function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
     document.getElementById("coat-name").textContent = COATS[i][0];
     document.getElementById("coat-blurb").textContent = COATS[i][1];
     if (fromPicker) { stageClip = reduce ? "sit" : "stretch"; stageT = 0; }
+    // The three demo clips show the picked coat too (each coat has its own set, rendered by the app).
+    Array.prototype.forEach.call(document.querySelectorAll("img.demo"), function (im) {
+      var src = "/demos/" + i + "/" + im.getAttribute("data-scene") + ".gif";
+      if (im.getAttribute("src") !== src) im.setAttribute("src", src);
+    });
     lastKey = ""; stageKey = "";
   }
   var stageKey = "";
   function drawStage(dt) {
+    var loading = !coatLoaded(coat);
+    if (stage.classList.contains("loading") !== loading) stage.classList.toggle("loading", loading);
+    if (loading) return;   // keep showing the previous coat, dimmed, until the new one has arrived
     stageT += dt;
     if (stageClip !== "sit" && stageT >= clipLength(stageClip)) { stageClip = "sit"; stageT = 0; }
     var im = strip(coat, stageClip, true);
