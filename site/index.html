@@ -56,7 +56,7 @@
 
   /* top */
   header.wrap { text-align: center; padding-top: 64px; padding-bottom: 8px; }
-  .logo { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  .logo { width: 156px; height: 156px; border-radius: 36px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
   .tag { font-size: clamp(19px, 2.4vw, 23px); color: var(--soft); max-width: 720px; text-wrap: balance; margin: 0 auto; }
   .hero { margin: 36px auto 0; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px rgba(0,0,0,.3); }
   .hero img { display: block; width: 100%; }
@@ -128,9 +128,22 @@
   .faq .a { padding: 0 20px 18px; color: var(--ink-soft); }
   .faq .a p + p { margin-top: 8px; }
   .faq b { color: var(--ink); }
+  .faq .a a { color: var(--accent); font-weight: 600; }
 
   footer.wrap { text-align: center; color: var(--soft); padding-top: 64px; padding-bottom: 24px; font-size: 16px; }
   footer .head { color: var(--white); font-size: 34px; margin-bottom: 6px; }
+  /* Donate button: a plain link to a cat charity (no widget script, so the page still loads nothing from others). */
+  .coffee {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap;
+    background: #FFDD00; color: #1A1A1A; font: 700 17px var(--body); border-radius: 12px; padding: 11px 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25); transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .coffee:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+  .coffee:focus-visible { outline: 3px solid #FFDD00; outline-offset: 3px; }
+  .coffee .cup { font-size: 20px; line-height: 1; }
+  .coffee-row { text-align: center; margin-top: 22px; }
+  .coffee-row p { color: var(--soft); font-size: 15px; margin-top: 10px; }
+  .coffee-row b { color: var(--white); }
   .linkish { font: inherit; color: var(--white); background: none; border: 0; padding: 0; margin-top: 10px; text-decoration: underline; cursor: pointer; }
 
   /* the live cat at the bottom of the window: clicks only land on the cat's own pixels (see script) */
@@ -144,13 +157,14 @@
 
   @media (max-width: 760px) {
     header.wrap { padding-top: 40px; }
+    .logo { width: 120px; height: 120px; border-radius: 28px; }
     section { padding: 52px 0; }
     .downloads, .grid3, .steps, .picker { grid-template-columns: 1fr; }
     .dl .big { font-size: 21px; }
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .dl { transition: none; } .dl:hover { transform: none; }
+    .dl, .coffee { transition: none; } .dl:hover, .coffee:hover { transform: none; }
     .heart { animation-duration: .01s; }
   }
 </style>
@@ -158,7 +172,7 @@
 <body>
 
 <header class="wrap">
-  <img class="logo" src="/apple-touch-icon.png" alt="" width="84" height="84">
+  <img class="logo" src="/logo.png" alt="" width="156" height="156">
   <h1>Purrgram</h1>
   <p class="tag">A pixel-art pet cat that lives on your desktop, right alongside your windows while you work. Free, for Mac and Windows (beta).</p>
   <div class="hero"><img class="pix" src="/hero.png" alt="Pixel cats on a desktop: one loafing on a window, one walking, one batting a ball of yarn, one sitting by its food and water bowls" width="2280" height="696"></div>
@@ -176,6 +190,10 @@
     </a>
   </div>
   <p class="meta"><span id="version">Always the latest version</span><br>Free · No account · No internet · No tracking · <a href="#install">How to install</a></p>
+  <div class="coffee-row">
+    <a class="coffee" href="https://www.alleycat.org/donate/" target="_blank" rel="noopener"><span class="cup" aria-hidden="true">🐾</span>Donate to help real cats</a>
+    <p>Purrgram is free. If you'd like to give something back, please donate to <b>Alley Cat Allies</b>, a nonprofit that protects cats and kittens.<br>Your gift goes straight to them (Purrgram isn't affiliated with them).</p>
+  </div>
 </header>
 
 <section class="band">
@@ -279,7 +297,7 @@
       </details>
       <details>
         <summary>Is it really free?</summary>
-        <div class="a"><p>Yes. No ads, no account, no in-app purchases.</p></div>
+        <div class="a"><p>Yes. No ads, no account, no in-app purchases. If you'd like to say thanks, please <a href="https://www.alleycat.org/donate/" target="_blank" rel="noopener">donate to Alley Cat Allies</a>, a nonprofit that helps cats in need. It's entirely optional.</p></div>
       </details>
     </div>
   </div>
@@ -288,6 +306,7 @@
 <footer class="wrap">
   <div class="head">Purrgram</div>
   <p>A little company while you work.</p>
+  <p style="margin-top:18px"><a class="coffee" href="https://www.alleycat.org/donate/" target="_blank" rel="noopener"><span class="cup" aria-hidden="true">🐾</span>Donate to help real cats</a></p>
   <button class="linkish" id="cat-toggle" type="button">Hide the cat</button>
 </footer>
 
