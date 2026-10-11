@@ -58,7 +58,6 @@ echo "• Making the drag-to-Applications disk image…"
 DMG="build/$FILE.dmg"; RW=build/rw.dmg; STAGE=build/dmg
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
-cp "READ ME FIRST.txt" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
 hdiutil create -quiet -volname "$NAME" -srcfolder "$STAGE" -fs HFS+ -format UDRW -ov "$RW"
 # Lay out the window: app on the left, Applications on the right. Needs one-time permission to control
@@ -71,14 +70,13 @@ tell application "Finder"
     set current view of container window to icon view
     set toolbar visible of container window to false
     set statusbar visible of container window to false
-    set the bounds of container window to {200, 120, 760, 470}
+    set the bounds of container window to {200, 120, 760, 420}
     set opts to the icon view options of container window
     set arrangement of opts to not arranged
     set icon size of opts to 112
     set text size of opts to 13
     set position of item "$NAME.app" of container window to {140, 150}
     set position of item "Applications" of container window to {420, 150}
-    set position of item "READ ME FIRST.txt" of container window to {280, 290}
     close
   end tell
 end tell
@@ -88,7 +86,8 @@ hdiutil detach -quiet "$MNT"
 rm -f "$DMG"
 hdiutil convert -quiet "$RW" -format UDZO -imagekey zlib-level=9 -o "$DMG"
 rm -rf "$RW" "$STAGE"
-codesign --force -s - "$DMG"
+# Don't sign the disk image: an ad-hoc signature makes macOS block the downloaded .dmg itself ("Purrgram.dmg"
+# Not Opened). Unsigned, it opens normally; only the app inside asks for the one-time Open Anyway.
 
 # Fingerprints: send these to friends separately (e.g. by text) so they can check the download is really yours.
 # The release's SHA256.txt also gets the Windows zip's line (see windows/build.sh).
