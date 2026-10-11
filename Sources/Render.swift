@@ -129,7 +129,8 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
     world.screen = CGRect(x: 0, y: 0, width: 330, height: 260); world.vis = world.screen
     world.bowlRect = CGRect(x: 200, y: 0, width: BowlView.size.width, height: BowlView.size.height)
     let win = scene == "catch" ? Plat(id: 1, rect: CGRect(x: 125, y: 40, width: 185, height: 140), order: 0)
-                               : Plat(id: 1, rect: CGRect(x: 175, y: 12, width: 150, height: 200), order: 0)
+            : scene == "hide" ? Plat(id: 1, rect: CGRect(x: 14, y: 58, width: 168, height: 150), order: 0)   // stays put: only the cat hides
+                              : Plat(id: 1, rect: CGRect(x: 175, y: 12, width: 150, height: 200), order: 0)
     world.all = [win]; world.stand = scene == "catch" ? [win] : []
     var st = SaveState(); st.coat = coat; st.sound = false
     let cat = Cat(world: world, state: st, sound: SoundBox())
@@ -171,7 +172,7 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
         ctx.scaleBy(x: scale, y: scale)
         drawBackdrop(ctx, width: world.screen.width, height: world.screen.height + floorH, floor: floorH)
         ctx.translateBy(x: 0, y: floorH)   // the scene stands on the floor band
-        if scene != "hide" && scene != "eat" { drawAppWindow(ctx, win.rect) }
+        if scene != "eat" { drawAppWindow(ctx, win.rect) }
         if !hidden {
             let eating: Bool = { if case .eat = cat.act { return true }; return false }()
             func bowls() {
@@ -200,8 +201,9 @@ func renderGIF(_ scene: String, _ path: String, coat: Int) {
             if !label.isEmpty {
                 NSGraphicsContext.saveGraphicsState()
                 NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
-                NSAttributedString(string: label, attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold),
-                                                               .foregroundColor: rgb(0x55506A)]).draw(at: P(12, 230))
+                let text = NSAttributedString(string: label, attributes: [.font: NSFont.systemFont(ofSize: 13, weight: .semibold),
+                                                                          .foregroundColor: rgb(0x7A4B50)])
+                text.draw(at: P(world.screen.width - text.size().width - 12, 230))   // top right, clear of the window
                 NSGraphicsContext.restoreGraphicsState()
             }
         }

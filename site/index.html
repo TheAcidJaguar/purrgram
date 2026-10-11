@@ -89,8 +89,14 @@
 
   /* coat picker */
   .picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; }
-  .stage { background: var(--white); border-radius: 18px; padding: 10px 16px 20px; text-align: center; }
-  .stage canvas { width: 100%; max-width: 408px; aspect-ratio: 51 / 36; display: block; margin: 12px auto 4px; }
+  /* Same backdrop as the demo pictures: a peach gradient, and the floor band starting right at the cat's feet
+     (the feet sit 30 of the canvas's 36 pixel rows down). The name and description sit on the floor. */
+  .stage { border-radius: 18px; overflow: hidden; text-align: center; background: linear-gradient(#FFF5EF, #FBDDD0); }
+  .stage canvas {
+    width: 100%; aspect-ratio: 51 / 36; display: block;
+    background: linear-gradient(to bottom, transparent 83.33%, #E8B3A0 83.33%, #E8B3A0 86.11%, #F2C7B6 86.11%);
+  }
+  .stage .label { background: #F2C7B6; padding: 2px 16px 20px; }
   .stage .head { color: var(--ink); font-size: 24px; }
   .stage .blurb { color: var(--ink-soft); margin-top: 4px; min-height: 1.65em; }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -200,8 +206,10 @@
     <div class="picker">
       <div class="stage">
         <canvas id="stage" width="51" height="36" aria-label="The selected cat coat, animated"></canvas>
-        <div class="head" id="coat-name">Slate</div>
-        <div class="blurb" id="coat-blurb"></div>
+        <div class="label">
+          <div class="head" id="coat-name">Slate</div>
+          <div class="blurb" id="coat-blurb"></div>
+        </div>
       </div>
       <div>
         <div class="chips" id="chips" role="group" aria-label="Cat coats"></div>
